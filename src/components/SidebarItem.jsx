@@ -1,24 +1,22 @@
+import { Link } from "react-router-dom";
+
 export const SidebarItem = ({
   icon: Icon,
   label,
+  path,
   bgColor = "bg-pink-500",
   textColor = "text-white",
   iconColor = "text-white",
-  active = false, // nuevo
+  active = false,
 }) => {
-  const baseStyle = "flex items-center gap-3 p-3 cursor-pointer";
-
-  // Aplica el estilo invertido si está activo
-  const activeStyle = active
-    ? "bg-white text-pink-500"
-    : `${bgColor} ${textColor}`;
-
+  const baseStyle = "flex items-center gap-3 p-3 cursor-pointer transition";
+  const activeStyle = active ? "bg-white text-pink-500" : `${bgColor} ${textColor}`;
   const iconClass = active ? "text-pink-500" : iconColor;
 
   return (
-    <div className={`${baseStyle} ${activeStyle}`}>
+    <Link to={path} className={`${baseStyle} ${activeStyle}`}>
       <Icon className={iconClass} />
       <span>{label}</span>
-    </div>
+    </Link>
   );
 };

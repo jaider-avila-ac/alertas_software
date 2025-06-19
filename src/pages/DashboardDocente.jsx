@@ -88,7 +88,7 @@ export const DashboardDocente = () => {
                 total={resumen.alertas}
                 icon={AlertTriangle}
                 bgColor="bg-amber-400"
-                onClick={() => navigate("/estudiantes")}
+                onClick={() => navigate("/alertas")}
               />
             </div>
             <div className="col-span-4">

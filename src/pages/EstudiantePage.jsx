@@ -4,12 +4,15 @@ import { Table } from "../components/Table";
 import { Button } from "../components/Button";
 import { Header } from "../components/Header";
 import { Sidebar } from "../components/Sidebar";
+import { useNavigate } from "react-router-dom";
 
 export const EstudiantePage = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const porPagina = 15;
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     cargarEstudiantes();
@@ -38,27 +41,35 @@ export const EstudiantePage = () => {
     if (nueva >= 1 && nueva <= totalPaginas) setPagina(nueva);
   };
 
-  const columnas = ["id","Nombre", "Documento", "Curso", "Acciones"];
+  const columnas = ["id", "Nombre", "Documento", "Curso", "Acciones"];
 
-const datos = visibles.map((e) => ({
+  const datos = visibles.map((e) => ({
     ID: `${e.id}`,
-  Nombre: `${e.nombres} ${e.apellidos}`,
-  Documento: e.nroDoc,
-  Curso: e.curso || "-",
-  Acciones: (
-    <div className="flex gap-2">
-      <Button text="Ver" color="bg-gray-500" onClick={() => {}} />
-          <Button text="Alerta" color="bg-gray-500" onClick={() => {}} />
-    </div>
-  ),
-}));
+    Nombre: `${e.nombres} ${e.apellidos}`,
+    Documento: e.nroDoc,
+    Curso: e.curso || "-",
+    Acciones: (
+      <div className="flex gap-2">
+        <Button
+          text="Ver"
+          color="bg-gray-500"
+          onClick={() => navigate(`/estudiantes/${e.id}`)}
+        />
+        <Button
+          text="Alerta"
+          color="bg-gray-500"
+          onClick={() => {/* otra acción si deseas */ }}
+        />
+      </div>
+    ),
+  }));
 
-console.log("📊 Datos mostrados en tabla:", visibles.map(e => ({
-  nombres: e.nombres,
-  apellidos: e.apellidos,
-  nroDoc: e.nroDoc,
-  curso: e.curso
-})));
+  console.log("📊 Datos mostrados en tabla:", visibles.map(e => ({
+    nombres: e.nombres,
+    apellidos: e.apellidos,
+    nroDoc: e.nroDoc,
+    curso: e.curso
+  })));
 
   return (
     <div className="flex h-screen">
