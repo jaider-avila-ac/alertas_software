@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerTodasConsultas } from "../services/consultaService";
-import { Header } from "../components/Header";
-import { Sidebar } from "../components/Sidebar";
+import { procesarConsultas } from "../utils/procesarConsultas";
 import { alertaVisual } from "../utils/alertaVisual";
 import { AlertaCard } from "../components/AlertaCard";
 import { BarraFiltros } from "../components/BarraFiltros";
+import { Button } from "../components/Button";
+import { Plus } from "lucide-react";
+import { Layout } from "../layout/Layout";
 
 export const PageAlertas = () => {
   const [alertas, setAlertas] = useState([]);
@@ -19,27 +20,21 @@ export const PageAlertas = () => {
   useEffect(() => {
     const fetchAlertas = async () => {
       try {
-        const res = await obtenerTodasConsultas();
-
-        const procesadas = res.data.map((c) => {
+        const datos = await procesarConsultas();
+        const procesadas = datos.map((c) => {
           const nivel = c.alerta?.toLowerCase();
           const visual = alertaVisual[nivel] || {};
-          const fecha = new Date(c.fecha).toLocaleDateString();
-
           return {
-            id: c.id,
-            nombre: `${c.estudianteNombres} ${c.estudianteApellidos}`,
-            motivo: c.motivo,
-            fecha,
-            estado: c.estado?.toLowerCase(),
+            ...c,
             nivel,
             icono: visual.icono,
             color: visual.color,
+            fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
           };
         });
 
         setAlertas(procesadas);
-        setAlertasFiltradas(procesadas); // mostrar todas al principio
+        setAlertasFiltradas(procesadas);
       } catch (error) {
         console.error("Error al cargar alertas:", error);
       }
@@ -75,40 +70,43 @@ export const PageAlertas = () => {
   };
 
   const contarPorEstado = () => {
-    const conteo = { todos: alertas.length, abierto: 0, completado: 0 };
+    const conteo = { todos: alertas.length, abierto: 0, completado: 0, pendiente: 0 };
     alertas.forEach((a) => {
       if (a.estado === "abierto") conteo.abierto++;
       if (a.estado === "completado") conteo.completado++;
+      if (a.estado === "pendiente") conteo.pendiente++;
     });
     return conteo;
   };
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header nombre={usuario.nombre} rol={usuario.rol} />
-        <main className="p-4 space-y-4">
-          <h2 className="text-2xl font-bold">Todas las alertas</h2>
+    <Layout >
+      <h2 className="text-2xl font-bold">Todas las alertas</h2>
 
-          <BarraFiltros
-            valorBusqueda={busqueda}
-            onBuscar={handleBuscar}
-            onAgregar={() => navigate("/crear-alerta")}
-            mostrarFiltroEstado={true}
-            estados={["todos", "abierto", "completado"]}
-            totales={contarPorEstado()}
-            onFiltrarEstado={handleFiltrarEstado}
-            placeholder="Buscar por nombre del estudiante…"
-          />
+      <div className="flex justify-between items-center flex-wrap gap-4">
+        <BarraFiltros
+          valorBusqueda={busqueda}
+          onBuscar={handleBuscar}
+          mostrarFiltroEstado={true}
+          estados={["todos", "abierto", "completado"]}
+          totales={contarPorEstado()}
+          onFiltrarEstado={handleFiltrarEstado}
+          placeholder="Buscar por nombre del estudiante…"
+        />
 
-          <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-220px)] pr-2">
-            {alertasFiltradas.map((alerta) => (
-              <AlertaCard key={alerta.id} alerta={alerta} />
-            ))}
-          </div>
-        </main>
+        <Button
+          text="Crear alerta"
+          color="bg-pink-500"
+          icon={Plus}
+          onClick={() => navigate("/consultas/nueva")}
+        />
       </div>
-    </div>
+
+      <div className="space-y-2">
+        {alertasFiltradas.map((alerta) => (
+          <AlertaCard key={alerta.id} alerta={alerta} />
+        ))}
+      </div>
+    </Layout>
   );
 };

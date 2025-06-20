@@ -2,16 +2,17 @@ import { useEffect, useState } from "react";
 import { obtenerTodosEstudiantes } from "../services/estudianteService";
 import { Table } from "../components/Table";
 import { Button } from "../components/Button";
-import { Header } from "../components/Header";
-import { Sidebar } from "../components/Sidebar";
+
 import { useNavigate } from "react-router-dom";
+import { Buscador } from "../components/Buscador";
+import { Plus, Eye } from "lucide-react";
+import { Layout } from "../layout/Layout";
 
 export const EstudiantePage = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const porPagina = 15;
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,64 +42,85 @@ export const EstudiantePage = () => {
     if (nueva >= 1 && nueva <= totalPaginas) setPagina(nueva);
   };
 
-  const columnas = ["id", "Nombre", "Documento", "Curso", "Acciones"];
-
-  const datos = visibles.map((e) => ({
-    ID: `${e.id}`,
+  const datosTabla = visibles.map((e) => ({
+    Foto: (
+  <img
+    src={`data:image/jpeg;base64,${e.imagen}`}
+    alt="Foto"
+    className="w-10 h-10 rounded-full object-cover"
+  />
+),
     Nombre: `${e.nombres} ${e.apellidos}`,
     Documento: e.nroDoc,
+    Telefono: e.tel,
     Curso: e.curso || "-",
     Acciones: (
       <div className="flex gap-2">
         <Button
-          text="Ver"
+          icon={Eye}
+          title="Mas detalles"
           color="bg-gray-500"
           onClick={() => navigate(`/estudiantes/${e.id}`)}
         />
         <Button
-          text="Alerta"
-          color="bg-gray-500"
-          onClick={() => {/* otra acción si deseas */ }}
+          title="Crear alerta"
+          icon={Plus}
+          color="bg-pink-500"
+          onClick={() => navigate(`/consultas/nueva/${e.id}`)}
         />
       </div>
     ),
   }));
 
-  console.log("📊 Datos mostrados en tabla:", visibles.map(e => ({
-    nombres: e.nombres,
-    apellidos: e.apellidos,
-    nroDoc: e.nroDoc,
-    curso: e.curso
-  })));
-
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header nombre="Docente" rol="Docente" />
-        <main className="p-4 space-y-4">
-          <h2 className="text-2xl font-bold">Estudiantes</h2>
 
-          <div className="flex items-center gap-4">
-            <input
-              type="text"
-              placeholder="Buscar por nombre o documento"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="border rounded px-3 py-2 w-full max-w-md"
-            />
-            <Button text="Buscar" color="bg-indigo-600" onClick={() => setPagina(1)} />
-          </div>
+    <Layout>
 
-          <Table columns={columnas} data={datos} />
+      <main className="flex-1 overflow-y-auto space-y-4">
+        <h2 className="text-2xl font-bold">Estudiantes</h2>
 
-          <div className="flex justify-between items-center mt-4">
-            <Button text="Anterior" color="bg-gray-400" onClick={() => cambiarPagina(pagina - 1)} />
-            <span>Página {pagina} de {totalPaginas}</span>
-            <Button text="Siguiente" color="bg-gray-400" onClick={() => cambiarPagina(pagina + 1)} />
-          </div>
-        </main>
-      </div>
-    </div>
+        <div className="flex items-center gap-4">
+          <Buscador
+            valor={busqueda}
+            onChange={(valor) => {
+              setBusqueda(valor);
+              setPagina(1);
+            }}
+            placeholder="Buscar por nombre o documento"
+          />
+          <Button
+            text="Buscar"
+            color="bg-indigo-600"
+            onClick={() => setPagina(1)}
+          />
+        </div>
+
+        <Table
+          columns={["Foto", "Nombre", "Documento", "Curso", "Telefono", "Acciones"]}
+
+          data={datosTabla}
+        />
+
+        <div className="flex justify-between items-center mt-4">
+          <Button
+            text="Anterior"
+            color="bg-gray-400"
+            onClick={() => cambiarPagina(pagina - 1)}
+          />
+          <span>Página {pagina} de {totalPaginas}</span>
+          <Button
+            text="Siguiente"
+            color="bg-gray-400"
+            onClick={() => cambiarPagina(pagina + 1)}
+          />
+        </div>
+      </main>
+    </Layout>
+
+
+
+
+
+
   );
 };

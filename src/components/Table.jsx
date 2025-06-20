@@ -3,7 +3,7 @@ export const Table = ({ columns, data, showActions = false, onEdit, onDelete }) 
     <div className="max-h-[460px] overflow-y-auto border rounded shadow-md">
   <table className="w-full text-sm text-left border-collapse">
     <thead>
-      <tr className="bg-pink-500 text-white sticky top-0 z-10">
+      <tr className="bg-gray-800  text-white sticky top-0 z-10">
         {columns.map((col, i) => (
           <th key={i} className="px-4 py-2 font-semibold tracking-wide">{col}</th>
         ))}

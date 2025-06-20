@@ -1,20 +1,14 @@
 import { Buscador } from "./Buscador";
-import { Button } from "./Button";
 import { FiltroEstado } from "./FiltroEstado";
-import { Plus } from "lucide-react";
 
 export const BarraFiltros = ({
   valorBusqueda,
   onBuscar,
-  onAgregar,
   mostrarFiltroEstado = false,
   estados = [],
   totales = {},
   onFiltrarEstado,
   placeholder = "Buscar...",
-  textoBoton = "Agregar",
-  colorBoton = "bg-pink-500",
-  iconoBoton = Plus,
 }) => {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -29,12 +23,6 @@ export const BarraFiltros = ({
             onFiltrar={onFiltrarEstado}
           />
         )}
-      </div>
-
-      {/* Derecha: botón agregar */}
-      <div>
-          <Button text="Crear alerta" color="bg-blue-600" icon={Plus} onClick={() => {}} />
-        
       </div>
     </div>
   );
