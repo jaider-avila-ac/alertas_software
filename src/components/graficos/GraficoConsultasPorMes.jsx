@@ -1,7 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 export const GraficoConsultasPorMes = ({ data }) => {
-  // Convertimos el objeto en array de { name, value }
+
   const datos = Object.entries(data?.consultasPorMes || {}).map(([mes, valor]) => ({
     name: mes,
     value: valor,

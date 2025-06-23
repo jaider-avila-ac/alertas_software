@@ -8,7 +8,7 @@ import { Button } from "../components/Button";
 import { Buscador } from "../components/Buscador";
 import { Notificacion } from "../components/Notificacion";
 import { TextAreaElegante } from "../components/TextAreaElegante";
-
+import { EstudianteFoto } from "../components/EstudianteFoto";
 import { AlertTriangle, CheckCircle, QrCode, Fingerprint } from "lucide-react";
 
 export const FormularioConsulta = ({ idEstudiante }) => {
@@ -104,7 +104,7 @@ export const FormularioConsulta = ({ idEstudiante }) => {
       setMotivo("");
       setDescargos("");
       setAlerta("");
-      setBusqueda(""); 
+      setBusqueda("");
       setEstudiante(null);
       setPresente(false);
       setMetodoValidacion("NINGUNO");
@@ -126,24 +126,9 @@ export const FormularioConsulta = ({ idEstudiante }) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-        {/* COLUMNA IZQUIERDA */}
         <div>
-          {/* Cuadro para foto y datos */}
-          <div className="border p-4 rounded text-center">
-            <div className="w-32 h-32 bg-gray-300 mx-auto rounded mb-4" />
-            {estudiante ? (
-              <>
-                <p><strong>{estudiante.nombres} {estudiante.apellidos}</strong></p>
-                <p className="text-sm text-gray-600">{estudiante.nroDoc}</p>
-                <p className="text-sm text-gray-600">Curso: {estudiante.curso || "No definido"}</p>
-              </>
-            ) : (
-              <p className="text-gray-500">Estudiante no identificado</p>
-            )}
-          </div>
+          <EstudianteFoto estudiante={estudiante} />
 
-          {/* Buscador con lista tipo dropdown */}
           {!estudiante && (
             <div className="relative mt-4" ref={contenedorRef}>
               <label className="block text-sm text-gray-700 mb-1">Buscar estudiante</label>
@@ -177,13 +162,11 @@ export const FormularioConsulta = ({ idEstudiante }) => {
             </div>
           )}
 
-          {/* Botones QR / Huella */}
           <div className="flex gap-2 mt-4">
             <Button text="Escanear QR" color="bg-indigo-600" icon={QrCode} onClick={() => { }} />
             <Button text="Leer huella" color="bg-purple-600" icon={Fingerprint} onClick={() => { }} />
           </div>
 
-          {/* Estado de presencia */}
           <div className="mt-4">
             <p className="text-sm text-gray-600">Presencia del estudiante:</p>
             <span className={`inline-block px-3 py-1 rounded text-white text-sm mt-1 ${presente ? "bg-green-500" : "bg-red-500"}`}>
@@ -192,7 +175,6 @@ export const FormularioConsulta = ({ idEstudiante }) => {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA */}
         <div>
           <InputElegante
             label="Motivo (máximo 4 palabras)"
@@ -209,12 +191,11 @@ export const FormularioConsulta = ({ idEstudiante }) => {
             placeholder="Detalles de la situación"
           />
 
-
           <SelectAlerta valor={alerta} onChange={(e) => setAlerta(e.target.value)} />
 
           <Button
             text="Guardar Consulta"
-            color="bg-blue-600"
+            color="bg-pink-500"
             onClick={manejarEnvio}
           />
         </div>

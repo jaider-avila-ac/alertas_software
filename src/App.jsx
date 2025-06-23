@@ -7,6 +7,7 @@ import { AlertaNueva } from "./pages/AlertaNueva";
 import { SeguimientosPorConsulta } from "./pages/SeguimientosPorConsulta";
 import { EstadisticasPage } from "./pages/EstadisticasPage";
 
+
 function App() {
   return (
     <Router>
@@ -19,6 +20,7 @@ function App() {
         <Route path="/estudiantes/:id" element={<EstudianteDetalle />} />
         <Route path="/seguimientos/:id" element={<SeguimientosPorConsulta />} />
         <Route path="/estadisticas" element={<EstadisticasPage />} />
+      
       </Routes>
     </Router>
   );

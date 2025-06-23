@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { obtenerEstadisticas } from "../services/estadisticaService";
 import { GraficoNiveles } from "../components/graficos/GraficoNiveles";
+import { Esqueleto } from "../components/Esqueleto";
 
 export const Chart = () => {
   const [datos, setDatos] = useState(null);
 
   useEffect(() => {
     const cargar = async () => {
-      const res = await obtenerEstadisticas();
-      setDatos(res.data);
+      try {
+        const res = await obtenerEstadisticas();
+        setDatos(res.data);
+      } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+      }
     };
     cargar();
   }, []);
@@ -18,7 +23,7 @@ export const Chart = () => {
       {datos ? (
         <GraficoNiveles data={datos} />
       ) : (
-        <p className="text-gray-500">Cargando gráfico...</p>
+        <Esqueleto className="w-full h-full rounded" />
       )}
     </div>
   );

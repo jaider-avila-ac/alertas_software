@@ -1,15 +1,21 @@
 import { useEffect, useState } from "react";
-import { obtenerTodosEstudiantes } from "../services/estudianteService";
+import {
+  obtenerTodosEstudiantes,
+  obtenerImagenEstudiante,
+} from "../services/estudianteService";
+
 import { Table } from "../components/Table";
 import { Button } from "../components/Button";
+import { Buscador } from "../components/Buscador";
+import { Layout } from "../layout/Layout";
 
 import { useNavigate } from "react-router-dom";
-import { Buscador } from "../components/Buscador";
 import { Plus, Eye } from "lucide-react";
-import { Layout } from "../layout/Layout";
+import FotoPorDefecto from "../assets/fotos_estudiante/CARD_PERFIL.jpg";
 
 export const EstudiantePage = () => {
   const [estudiantes, setEstudiantes] = useState([]);
+  const [fotos, setFotos] = useState({});
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const porPagina = 15;
@@ -22,17 +28,29 @@ export const EstudiantePage = () => {
   const cargarEstudiantes = async () => {
     try {
       const res = await obtenerTodosEstudiantes();
-      setEstudiantes(res.data);
+      const lista = res.data;
+      setEstudiantes(lista);
+
+      // Pre-cargar imágenes por estudiante
+      lista.forEach(async (est) => {
+        try {
+          const resImg = await obtenerImagenEstudiante(est.id);
+          const url = URL.createObjectURL(resImg.data);
+          setFotos((prev) => ({ ...prev, [est.id]: url }));
+        } catch {
+          setFotos((prev) => ({ ...prev, [est.id]: FotoPorDefecto }));
+        }
+      });
     } catch (error) {
       console.error("Error al cargar estudiantes:", error);
     }
   };
 
   const estudiantesFiltrados = estudiantes.filter((e) =>
-    `${e.id} ${e.nombres} ${e.apellidos} ${e.nroDoc}`
-      .toLowerCase()
-      .includes(busqueda.toLowerCase())
-  );
+  `${e.nombres} ${e.apellidos} ${e.nroDoc}`
+    .toLowerCase()
+    .includes(busqueda.toLowerCase())
+);
 
   const totalPaginas = Math.ceil(estudiantesFiltrados.length / porPagina);
   const inicio = (pagina - 1) * porPagina;
@@ -44,21 +62,21 @@ export const EstudiantePage = () => {
 
   const datosTabla = visibles.map((e) => ({
     Foto: (
-  <img
-    src={`data:image/jpeg;base64,${e.imagen}`}
-    alt="Foto"
-    className="w-10 h-10 rounded-full object-cover"
-  />
-),
+      <img
+        src={fotos[e.id] || FotoPorDefecto}
+        alt="Foto"
+        className="w-10 h-10 rounded-full object-cover"
+      />
+    ),
     Nombre: `${e.nombres} ${e.apellidos}`,
     Documento: e.nroDoc,
-    Telefono: e.tel,
     Curso: e.curso || "-",
+    Telefono: e.tel,
     Acciones: (
       <div className="flex gap-2">
         <Button
           icon={Eye}
-          title="Mas detalles"
+          title="Más detalles"
           color="bg-gray-500"
           onClick={() => navigate(`/estudiantes/${e.id}`)}
         />
@@ -73,9 +91,7 @@ export const EstudiantePage = () => {
   }));
 
   return (
-
     <Layout>
-
       <main className="flex-1 overflow-y-auto space-y-4">
         <h2 className="text-2xl font-bold">Estudiantes</h2>
 
@@ -90,14 +106,13 @@ export const EstudiantePage = () => {
           />
           <Button
             text="Buscar"
-            color="bg-indigo-600"
+            color="bg-sky-500"
             onClick={() => setPagina(1)}
           />
         </div>
 
         <Table
           columns={["Foto", "Nombre", "Documento", "Curso", "Telefono", "Acciones"]}
-
           data={datosTabla}
         />
 
@@ -116,11 +131,5 @@ export const EstudiantePage = () => {
         </div>
       </main>
     </Layout>
-
-
-
-
-
-
   );
 };
