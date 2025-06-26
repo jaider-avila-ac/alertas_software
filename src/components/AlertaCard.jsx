@@ -2,29 +2,29 @@ import { Pin, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const AlertaCard = ({ alerta }) => {
-  const { id, nombre, motivo, fecha, estado, nivel, icono, color } = alerta;
+  const { id, nombreEstudiante, motivo, fecha, estado, nivel, icono, color } = alerta;
   const navigate = useNavigate();
 
   const irASeguimientos = () => {
-    const nombreEncoded = encodeURIComponent(nombre);
+    const nombreEncoded = encodeURIComponent(nombreEstudiante);
     navigate(`/seguimientos/${id}?estudiante=${nombreEncoded}`);
   };
 
   return (
     <div
       onClick={irASeguimientos}
-      className="flex bg-white mb-3 items-center p-2 rounded shadow-sm gap-3 max-w-full cursor-pointer hover:shadow-md transition"
+      className="flex flex-col sm:flex-row bg-white mb-3 items-start sm:items-center p-2 rounded shadow-sm gap-3 max-w-full cursor-pointer hover:shadow-md transition"
     >
       <div className={`w-14 h-14 flex items-center justify-center flex-shrink-0 rounded ${color}`}>
         <img loading="lazy" src={icono} alt="icono alerta" className="w-6 h-6 object-contain" />
       </div>
 
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3 mb-1">
           <div className="bg-blue-600 w-24 h-6 flex items-center justify-center rounded text-white font-semibold text-sm">
             <p className="m-0">{id}</p>
           </div>
-          <p className="font-semibold text-sm truncate">{nombre}</p>
+          <p className="font-semibold text-sm truncate">{nombreEstudiante}</p>
         </div>
 
         <div className="flex gap-3 flex-wrap text-xs items-center">

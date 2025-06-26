@@ -1,15 +1,12 @@
 import { createContext, useState } from "react";
 
-// Crear contexto
 export const UserContext = createContext();
 
-// Proveedor de contexto
 export const UserProvider = ({ children }) => {
-  // Aquí puedes cambiar manualmente entre roles:
-  // 0 = Docente, 2 = Psicorientador
   const [usuario, setUsuario] = useState({
+    id: 1, // ✅ ID del psicorientador (ajústalo si necesitas otro valor)
     nombre: "Usuario Demo",
-    rol: 2, // ⬅️ CAMBIA AQUÍ entre 0 (docente) y 2 (psicorientador)
+    rol: 0, //  0 (docente) y 2 (psicorientador)
   });
 
   return (

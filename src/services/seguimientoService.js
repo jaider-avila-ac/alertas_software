@@ -7,5 +7,5 @@ export const obtenerSeguimientosPorConsulta = (consultaId) =>
 
 export const crearSeguimiento = (data) => post(base, data);
 
-export const obtenerEstadoActual = (consultaId) =>
-  get(`${base}/estado/${consultaId}`);
+export const contarSeguimientosPorConsulta = (consultaId) =>
+  get(`${base}/cantidad/${consultaId}`);

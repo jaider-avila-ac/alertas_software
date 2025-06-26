@@ -1,27 +1,26 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { totalEstudiantes } from "../services/estudianteService";
-import { totalConsultas } from "../services/consultaService";
-import { procesarConsultas } from "../utils/procesarConsultas";
+import { totalConsultas, obtenerTodasConsultas } from "../services/consultaService";
 import { alertaVisual } from "../utils/alertaVisual";
 import { Layout } from "../layout/Layout";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { AlertaCard } from "../components/AlertaCard";
-import { Chart } from "../components/Chart";
 import { Esqueleto } from "../components/Esqueleto";
 import { Users, AlertTriangle, BarChart4, Plus } from "lucide-react";
 import { AlertasContext } from "../context/AlertasContext";
 import { GraficoNiveles } from "../components/graficos/GraficoNiveles";
-
+import { UserContext } from "../context/UserContext"; 
 
 export const DashboardDocente = () => {
   const [resumen, setResumen] = useState({ estudiantes: 0, alertas: 0, seguimientos: 0 });
   const [cargando, setCargando] = useState(true);
   const { alertas, setAlertas } = useContext(AlertasContext);
-  const [alertasDocente, setAlertasDocente] = useState(alertas || []);
+  const [alertasDocente, setAlertasDocente] = useState([]);
+  const { usuario } = useContext(UserContext); 
+  const docenteId = usuario?.id; 
   const navigate = useNavigate();
-  const docenteId = 1;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,21 +36,32 @@ export const DashboardDocente = () => {
           seguimientos: 0,
         });
 
-        if (!alertas) {
-          const consultas = await procesarConsultas(docenteId);
-          const procesadas = consultas.map((c) => {
-            const nivel = c.alerta?.toLowerCase();
+        if (!alertas || alertas.length === 0) {
+          const res = await obtenerTodasConsultas();
+          const datos = res.data || [];
+
+          // Filtrar por docente
+          const filtradas = datos.filter((c) => c.docenteId === docenteId);
+
+          const procesadas = filtradas.map((c) => {
+            const nivel = c.nivel?.toLowerCase();
             const visual = alertaVisual[nivel] || {};
             return {
-              ...c,
+              id: c.id,
+              nombreEstudiante: c.nombreEstudiante,
+              motivo: c.motivo,
+              fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
+              estado: c.estado,
               nivel,
               icono: visual.icono,
               color: visual.color,
-              fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
             };
           });
+
           setAlertas(procesadas);
           setAlertasDocente(procesadas);
+        } else {
+          setAlertasDocente(alertas);
         }
       } catch (error) {
         console.error("Error cargando dashboard:", error);
@@ -61,7 +71,7 @@ export const DashboardDocente = () => {
     };
 
     fetchData();
-  }, [alertas, setAlertas]);
+  }, [alertas, setAlertas, docenteId]);
 
   return (
     <Layout>
@@ -128,8 +138,7 @@ export const DashboardDocente = () => {
           </div>
 
           <div className="col-span-4">
-          
-           <GraficoNiveles />
+            <GraficoNiveles />
           </div>
         </div>
       </main>

@@ -10,7 +10,7 @@ export const actualizarEstudiante = (id, data) => put(`${base}/${id}`, data);
 export const eliminarEstudiante = (id) => del(`${base}/${id}`);
 export const totalEstudiantes = () => get(`${base}/total`);
 
-// ⚠️ Atención: aquí se usa axios directamente por configuración especial
+
 import axios from "axios";
 export const obtenerImagenEstudiante = (id) =>
   axios.get(`http://localhost:8085/api/estudiantes/${id}/imagen`, {

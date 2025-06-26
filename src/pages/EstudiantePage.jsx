@@ -13,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Eye } from "lucide-react";
 import FotoPorDefecto from "../assets/fotos_estudiante/CARD_PERFIL.jpg";
 
+import { useContext } from "react";
+import { UserContext } from "../context/UserContext";
+
 export const EstudiantePage = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [fotos, setFotos] = useState({});
@@ -31,7 +34,7 @@ export const EstudiantePage = () => {
       const lista = res.data;
       setEstudiantes(lista);
 
-      // Pre-cargar imágenes por estudiante
+      // Pre-cargar imagenes por estudiante
       lista.forEach(async (est) => {
         try {
           const resImg = await obtenerImagenEstudiante(est.id);
@@ -47,14 +50,15 @@ export const EstudiantePage = () => {
   };
 
   const estudiantesFiltrados = estudiantes.filter((e) =>
-  `${e.nombres} ${e.apellidos} ${e.nroDoc}`
-    .toLowerCase()
-    .includes(busqueda.toLowerCase())
-);
+    `${e.nombres} ${e.apellidos} ${e.nroDoc}`
+      .toLowerCase()
+      .includes(busqueda.toLowerCase())
+  );
 
   const totalPaginas = Math.ceil(estudiantesFiltrados.length / porPagina);
   const inicio = (pagina - 1) * porPagina;
   const visibles = estudiantesFiltrados.slice(inicio, inicio + porPagina);
+  const { usuario } = useContext(UserContext);
 
   const cambiarPagina = (nueva) => {
     if (nueva >= 1 && nueva <= totalPaginas) setPagina(nueva);
@@ -80,12 +84,14 @@ export const EstudiantePage = () => {
           color="bg-gray-500"
           onClick={() => navigate(`/estudiantes/${e.id}`)}
         />
-        <Button
-          title="Crear alerta"
-          icon={Plus}
-          color="bg-pink-500"
-          onClick={() => navigate(`/consultas/nueva/${e.id}`)}
-        />
+        {usuario.rol === 0 && (
+          <Button
+            title="Crear alerta"
+            icon={Plus}
+            color="bg-pink-500"
+            onClick={() => navigate(`/consultas/nueva/${e.id}`)}
+          />
+        )}
       </div>
     ),
   }));

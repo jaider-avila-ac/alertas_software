@@ -1,23 +1,20 @@
-import circuloLeve from "../assets/niveles_alertas/circulo_leve.svg";
-import escudoAlto from "../assets/niveles_alertas/escudo_alto.svg";
-import hexagonoCritico from "../assets/niveles_alertas/hexagono_critico.svg";
-import trianguloModerado from "../assets/niveles_alertas/triangulo_moderado.svg";
+import { iconosAlerta, clasesAlerta } from "../mis_iconos/iconosAlerta";
 
 export const alertaVisual = {
   leve: {
-    icono: circuloLeve,
-    color: "bg-emerald-400",
+    icono: iconosAlerta.leve,
+    color: clasesAlerta.leve,
   },
   moderado: {
-    icono: trianguloModerado,
-    color: "bg-amber-400",
+    icono: iconosAlerta.moderado,
+    color: clasesAlerta.moderado,
   },
   alto: {
-    icono: escudoAlto,
-    color: "bg-rose-400",
+    icono: iconosAlerta.alto,
+    color: clasesAlerta.alto,
   },
   critico: {
-    icono: hexagonoCritico,
-    color: "bg-purple-400",
+    icono: iconosAlerta.critico,
+    color: clasesAlerta.critico,
   },
 };

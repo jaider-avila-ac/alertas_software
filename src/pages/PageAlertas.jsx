@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { procesarConsultas } from "../utils/procesarConsultas";
 import { alertaVisual } from "../utils/alertaVisual";
 import { AlertaCard } from "../components/AlertaCard";
@@ -17,6 +17,9 @@ export const PageAlertas = () => {
   const [estadoFiltro, setEstadoFiltro] = useState("todos");
   const [cargando, setCargando] = useState(true);
 
+  const [searchParams] = useSearchParams();
+  const estudianteIdParam = searchParams.get("estudianteId");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,25 +28,28 @@ export const PageAlertas = () => {
         try {
           const datos = await procesarConsultas();
           const procesadas = datos.map((c) => {
-            const nivel = c.alerta?.toLowerCase();
+            const nivel = c.nivel?.toLowerCase();
             const visual = alertaVisual[nivel] || {};
             return {
-              ...c,
+              id: c.id,
+              estudianteId: c.estudianteId,
+              nombreEstudiante: c.nombreEstudiante || "Sin nombre",
+              motivo: c.motivo || "Sin motivo",
+              estado: c.estado || "pendiente",
+              fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
               nivel,
               icono: visual.icono,
               color: visual.color,
-              fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
             };
           });
+
           setAlertas(procesadas);
-          setAlertasFiltradas(procesadas);
         } catch (error) {
-          console.error("Error al cargar alertas:", error);
+          console.error("❌ Error al cargar alertas:", error);
         } finally {
           setCargando(false);
         }
       } else {
-        setAlertasFiltradas(alertas);
         setCargando(false);
       }
     };
@@ -51,39 +57,65 @@ export const PageAlertas = () => {
     fetchAlertas();
   }, [alertas, setAlertas]);
 
-  const filtrarPorTodo = (busquedaTexto, estado) => {
+  useEffect(() => {
     if (!alertas) return;
+
     let filtradas = [...alertas];
 
-    if (estado !== "todos") {
-      filtradas = filtradas.filter((a) => a.estado === estado);
+    // 1. Filtro por estudianteId sin búsqueda ni estado
+    if (estudianteIdParam && !busqueda && estadoFiltro === "todos") {
+      filtradas = filtradas.filter((a) => String(a.estudianteId) === estudianteIdParam);
     }
 
-    if (busquedaTexto) {
+    // 2. Filtro general por estado === "todos"
+    if (estadoFiltro === "todos") {
+      filtradas = filtradas.filter(
+        (a) =>
+          a.estado === "pendiente" ||
+          a.estado === null ||
+          a.estado === "en_progreso"
+      );
+    }
+
+    // 3. Filtro por estado específico
+    if (estadoFiltro !== "todos") {
+      filtradas = filtradas.filter((a) => a.estado === estadoFiltro);
+    }
+
+    // 4. Filtro por búsqueda
+    if (busqueda) {
       filtradas = filtradas.filter((a) =>
-        a.nombre.toLowerCase().includes(busquedaTexto.toLowerCase())
+        a.nombreEstudiante.toLowerCase().includes(busqueda.toLowerCase())
       );
     }
 
     setAlertasFiltradas(filtradas);
-  };
+  }, [alertas, estudianteIdParam, busqueda, estadoFiltro]);
 
   const handleBuscar = (texto) => {
     setBusqueda(texto);
-    filtrarPorTodo(texto, estadoFiltro);
   };
 
   const handleFiltrarEstado = (estado) => {
     setEstadoFiltro(estado);
-    filtrarPorTodo(busqueda, estado);
+    if (estado === "todos" && estudianteIdParam) {
+      navigate("/consultas");
+    }
   };
 
   const contarPorEstado = () => {
-    const conteo = { todos: alertas?.length || 0, abierto: 0, completado: 0, pendiente: 0 };
+    const conteo = {
+      todos: alertas?.length || 0,
+      abierto: 0,
+      completado: 0,
+      pendiente: 0,
+      en_progreso: 0,
+    };
     alertas?.forEach((a) => {
       if (a.estado === "abierto") conteo.abierto++;
       if (a.estado === "completado") conteo.completado++;
       if (a.estado === "pendiente") conteo.pendiente++;
+      if (a.estado === "en_progreso") conteo.en_progreso++;
     });
     return conteo;
   };
@@ -97,7 +129,7 @@ export const PageAlertas = () => {
           valorBusqueda={busqueda}
           onBuscar={handleBuscar}
           mostrarFiltroEstado={true}
-          estados={["todos", "abierto", "completado"]}
+          estados={["todos", "pendiente", "en_progreso", "completado"]} // puedes ajustar aquí los filtros visibles
           totales={contarPorEstado()}
           onFiltrarEstado={handleFiltrarEstado}
           placeholder="Buscar por nombre del estudiante…"

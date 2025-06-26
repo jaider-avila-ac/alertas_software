@@ -1,25 +1,22 @@
 import { obtenerTodasConsultas } from "../services/consultaService";
 
-
-export const procesarConsultas = async (docenteId = null) => {
+export const procesarConsultas = async () => {
   try {
     const res = await obtenerTodasConsultas();
 
-    const filtradas = res.data.filter((c) => !docenteId || c.docenteId === docenteId);
+    const consultas = res.data;
 
-    return filtradas.map((c) => ({
+    console.log("📦 Datos crudos recibidos:", res);
+    console.log("📄 Lista de consultas:", consultas);
+
+    return consultas.map((c) => ({
       id: c.id,
-      estudianteId: c.estudianteId,
-      nombre: `${c.estudianteNombres} ${c.estudianteApellidos}`,
-      documento: c.estudianteDocumento,
-      docenteId: c.docenteId,
-      motivo: c.motivo,
-      descargos: c.descargos,
-      alerta: c.alerta,
+      estudianteId: c.estudianteId, 
+      nombreEstudiante: c.nombreEstudiante || "Sin nombre",
+      motivo: c.motivo || "Sin motivo",
       estado: (c.estado || "pendiente").toLowerCase(),
       fecha: c.fecha,
-      metodoValidacion: c.metodoValidacion,
-      presenciaEstudiante: c.presenciaEstudiante,
+      nivel: c.nivel?.toLowerCase() ?? "leve",
     }));
   } catch (error) {
     console.error("Error procesando consultas:", error);

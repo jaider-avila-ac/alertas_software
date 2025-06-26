@@ -19,7 +19,7 @@ export const FormularioConsulta = ({ idEstudiante }) => {
   const [busqueda, setBusqueda] = useState("");
   const [motivo, setMotivo] = useState("");
   const [descargos, setDescargos] = useState("");
-  const [alerta, setAlerta] = useState("");
+  const [nivel, setAlerta] = useState("");
   const [presente, setPresente] = useState(false);
   const [metodoValidacion, setMetodoValidacion] = useState("NINGUNO");
   const [mensaje, setMensaje] = useState(null);
@@ -64,58 +64,63 @@ export const FormularioConsulta = ({ idEstudiante }) => {
   };
 
   const manejarEnvio = async () => {
-    if (!motivo.trim() || !alerta || !estudiante) {
-      setMensaje({
-        texto: "Debe llenar todos los campos y seleccionar un estudiante.",
-        color: "bg-red-500",
-        icono: AlertTriangle,
-      });
-      return;
-    }
+  if (!motivo.trim() || !nivel || !estudiante) {
+    setMensaje({
+      texto: "Debe llenar todos los campos y seleccionar un estudiante.",
+      color: "bg-red-500",
+      icono: AlertTriangle,
+    });
+    return;
+  }
 
-    const palabras = motivo.trim().split(/\s+/);
-    if (palabras.length > 4) {
-      setMensaje({
-        texto: "El motivo no puede tener más de 4 palabras.",
-        color: "bg-yellow-500",
-        icono: AlertTriangle,
-      });
-      return;
-    }
+  const palabras = motivo.trim().split(/\s+/);
+  if (palabras.length > 4) {
+    setMensaje({
+      texto: "El motivo no puede tener más de 4 palabras.",
+      color: "bg-yellow-500",
+      icono: AlertTriangle,
+    });
+    return;
+  }
 
-    const datosConsulta = {
-      estudiante: { id: estudiante.id || estudiante.estu_id },
-      docente: { id: docenteId },
-      motivo,
-      descargos,
-      alerta,
-      presenciaEstudiante: presente,
-      metodoValidacion,
-      estado: "pendiente",
-    };
-
-    try {
-      await crearConsulta(datosConsulta);
-      setMensaje({
-        texto: "Consulta registrada con éxito.",
-        color: "bg-green-600",
-        icono: CheckCircle,
-      });
-      setMotivo("");
-      setDescargos("");
-      setAlerta("");
-      setBusqueda("");
-      setEstudiante(null);
-      setPresente(false);
-      setMetodoValidacion("NINGUNO");
-    } catch (error) {
-      setMensaje({
-        texto: "Error al registrar la alerta.",
-        color: "bg-red-500",
-        icono: AlertTriangle,
-      });
-    }
+  const datosConsulta = {
+    estudiante: { id: estudiante.id || estudiante.estu_id },
+    docente: { id: docenteId },
+    motivo,
+    descargos,
+    nivel: nivel.toLowerCase(), 
+    presenciaEstudiante: presente,
+    metodoValidacion, // ya está en mayúsculas como exige la BD
+    estado: "pendiente", // en minscula porque asi esta en la base de datos
   };
+
+  console.log("JSON enviado al backend:", JSON.stringify(datosConsulta, null, 2));
+
+  try {
+    await crearConsulta(datosConsulta);
+    setMensaje({
+      texto: "Consulta registrada con éxito.",
+      color: "bg-green-600",
+      icono: CheckCircle,
+    });
+    setMotivo("");
+    setDescargos("");
+    setAlerta("");
+    setBusqueda("");
+    setEstudiante(null);
+    setPresente(false);
+    setMetodoValidacion("NINGUNO");
+  } catch (error) {
+    setMensaje({
+      texto: "Error al registrar la alerta.",
+      color: "bg-red-500",
+      icono: AlertTriangle,
+    });
+    console.error("Error al guardar consulta:", error);
+  }
+};
+
+
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded shadow">
@@ -191,7 +196,7 @@ export const FormularioConsulta = ({ idEstudiante }) => {
             placeholder="Detalles de la situación"
           />
 
-          <SelectAlerta valor={alerta} onChange={(e) => setAlerta(e.target.value)} />
+          <SelectAlerta valor={nivel} onChange={(e) => setAlerta(e.target.value)} />
 
           <Button
             text="Guardar Consulta"

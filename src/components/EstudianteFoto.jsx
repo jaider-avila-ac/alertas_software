@@ -6,18 +6,26 @@ import { obtenerImagenEstudiante } from "../services/estudianteService";
 export const EstudianteFoto = ({ estudiante }) => {
   const [imagenUrl, setImagenUrl] = useState(FotoPorDefecto);
 
-  useEffect(() => {
-    if (estudiante?.id) {
-      obtenerImagenEstudiante(estudiante.id)
-        .then((res) => {
+useEffect(() => {
+  if (estudiante?.id) {
+    obtenerImagenEstudiante(estudiante.id)
+      .then((res) => {
+        if (res?.data && res.data.size > 0) {
           const url = URL.createObjectURL(res.data);
           setImagenUrl(url);
-        })
-        .catch(() => {
+        } else {
           setImagenUrl(FotoPorDefecto);
-        });
-    }
-  }, [estudiante]);
+        }
+      })
+      .catch((error) => {
+        if (error.response?.status === 404) {
+          setImagenUrl(FotoPorDefecto);
+        }
+      
+      });
+  }
+}, [estudiante]);
+
 
   return (
     <div className="border p-4 rounded text-center">

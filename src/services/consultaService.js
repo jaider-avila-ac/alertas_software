@@ -10,3 +10,10 @@ export const crearConsulta = (data) => post(base, data);
 export const actualizarConsulta = (id, data) => put(`${base}/${id}`, data);
 export const eliminarConsulta = (id) => del(`${base}/${id}`);
 export const totalConsultas = () => get(`${base}/total`);
+
+export const contarEstudiantesConConsultas = () => get(`${base}/estudiantes-con-consultas`);
+
+export const totalAlertasSinSeguimiento = () => get(`${base}/sin-seguimiento/total`);
+
+export const cambiarEstadoConsulta = (id, estado) =>
+  put(`${base}/${id}/estado`, JSON.stringify(estado));

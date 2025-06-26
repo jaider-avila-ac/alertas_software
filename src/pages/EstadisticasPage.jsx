@@ -8,6 +8,7 @@ import { GraficoPromedios } from "../components/graficos/GraficoPromedios";
 import { GraficoConsultasPorMes } from "../components/graficos/GraficoConsultasPorMes";
 
 
+
 export const EstadisticasPage = () => {
   const [datos, setDatos] = useState(null);
 

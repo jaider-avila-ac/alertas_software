@@ -5,6 +5,9 @@ import { obtenerAntecedentesPorEstudiante } from "../services/antecedenteService
 import { obtenerFamiliaresPorEstudiante } from "../services/familiarService";
 import { buscarConsultaPorEstudiante } from "../services/consultaService";
 
+import { useContext } from "react";
+import { UserContext } from "../context/UserContext";
+
 import { Button } from "../components/Button";
 import { Table } from "../components/Table";
 import { DatoCampo } from "../components/DatoCampo";
@@ -14,6 +17,7 @@ import { Layout } from "../layout/Layout";
 export const EstudianteDetalle = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { usuario } = useContext(UserContext);
 
     const [estudiante, setEstudiante] = useState(null);
     const [antecedentes, setAntecedentes] = useState([]);
@@ -82,15 +86,17 @@ export const EstudianteDetalle = () => {
                     <h2 className="text-2xl font-bold">
                         Detalles de {estudiante.nombres} {estudiante.apellidos}
                     </h2>
-                    <Button
-                        text="Agregar alerta"
-                        icon={Plus}
-                        color="bg-blue-600"
-                        onClick={() => navigate(`/crear-alerta?estudianteId=${id}`)}
-                    />
+                    {usuario.rol === 0 && (
+                        <Button
+                            text="Agregar alerta"
+                            icon={Plus}
+                            color="bg-blue-600"
+                            onClick={() => navigate(`/crear-alerta?estudianteId=${id}`)}
+                        />
+                    )}
                 </div>
 
-              
+
                 <section>
                     <h3 className="text-xl font-semibold mb-2">Información del estudiante</h3>
                     <div className="grid grid-cols-3 gap-4 bg-white p-4 rounded shadow">
@@ -106,7 +112,7 @@ export const EstudianteDetalle = () => {
                     </div>
                 </section>
 
-              
+
                 <section>
                     <h3 className="text-xl font-semibold mb-2">Antecedentes</h3>
                     {antecedentes.length > 0 ? (
@@ -123,7 +129,7 @@ export const EstudianteDetalle = () => {
                     )}
                 </section>
 
-           
+
                 <section>
                     <h3 className="text-xl font-semibold mb-2">Familiares</h3>
                     {familiares.length > 0 ? (
