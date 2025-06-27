@@ -7,8 +7,6 @@ import { GraficoEstados } from "../components/graficos/GraficoEstados";
 import { GraficoPromedios } from "../components/graficos/GraficoPromedios";
 import { GraficoConsultasPorMes } from "../components/graficos/GraficoConsultasPorMes";
 
-
-
 export const EstadisticasPage = () => {
   const [datos, setDatos] = useState(null);
 
@@ -26,21 +24,26 @@ export const EstadisticasPage = () => {
     <Layout>
       <main className="p-4 space-y-4">
         <h2 className="text-2xl font-bold">Estadísticas Generales</h2>
+
         <GraficoResumen data={datos} />
 
         <div className="grid grid-cols-12 gap-4">
-          <GraficoNiveles data={datos} />
-          <GraficoEstados data={datos} />
-          <GraficoPromedios data={datos} />
+          <div className="col-span-12 lg:col-span-4">
+            <GraficoNiveles data={datos} />
+          </div>
+          <div className="col-span-12 lg:col-span-4">
+            <GraficoEstados data={datos} />
+          </div>
+          <div className="col-span-12 lg:col-span-4">
+            <GraficoPromedios data={datos} />
+          </div>
         </div>
 
         <div className="grid grid-cols-12 gap-4">
-         <GraficoConsultasPorMes data={datos} />
+          <div className="col-span-12">
+            <GraficoConsultasPorMes data={datos} />
+          </div>
         </div>
-
-
-       
-
       </main>
     </Layout>
   );

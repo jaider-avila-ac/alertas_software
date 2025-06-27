@@ -45,7 +45,7 @@ export const PageAlertas = () => {
 
           setAlertas(procesadas);
         } catch (error) {
-          console.error("❌ Error al cargar alertas:", error);
+          console.error("Error al cargar alertas:", error);
         } finally {
           setCargando(false);
         }
@@ -62,27 +62,19 @@ export const PageAlertas = () => {
 
     let filtradas = [...alertas];
 
-    // 1. Filtro por estudianteId sin búsqueda ni estado
-    if (estudianteIdParam && !busqueda && estadoFiltro === "todos") {
-      filtradas = filtradas.filter((a) => String(a.estudianteId) === estudianteIdParam);
-    }
-
-    // 2. Filtro general por estado === "todos"
-    if (estadoFiltro === "todos") {
-      filtradas = filtradas.filter(
-        (a) =>
-          a.estado === "pendiente" ||
-          a.estado === null ||
-          a.estado === "en_progreso"
-      );
-    }
-
-    // 3. Filtro por estado específico
     if (estadoFiltro !== "todos") {
       filtradas = filtradas.filter((a) => a.estado === estadoFiltro);
     }
 
-    // 4. Filtro por búsqueda
+    if (estudianteIdParam && estadoFiltro === "todos" && !busqueda) {
+  filtradas = filtradas.filter(
+    (a) =>
+      String(a.estudianteId) === estudianteIdParam &&
+      a.estado !== "completado" &&
+      a.estado !== "en_cita"
+  );
+}
+
     if (busqueda) {
       filtradas = filtradas.filter((a) =>
         a.nombreEstudiante.toLowerCase().includes(busqueda.toLowerCase())
@@ -103,44 +95,34 @@ export const PageAlertas = () => {
     }
   };
 
-  const contarPorEstado = () => {
-    const conteo = {
-      todos: alertas?.length || 0,
-      abierto: 0,
-      completado: 0,
-      pendiente: 0,
-      en_progreso: 0,
-    };
-    alertas?.forEach((a) => {
-      if (a.estado === "abierto") conteo.abierto++;
-      if (a.estado === "completado") conteo.completado++;
-      if (a.estado === "pendiente") conteo.pendiente++;
-      if (a.estado === "en_progreso") conteo.en_progreso++;
-    });
-    return conteo;
-  };
-
   return (
     <Layout>
       <h2 className="text-2xl font-bold">Todas las alertas</h2>
 
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <BarraFiltros
-          valorBusqueda={busqueda}
-          onBuscar={handleBuscar}
-          mostrarFiltroEstado={true}
-          estados={["todos", "pendiente", "en_progreso", "completado"]} // puedes ajustar aquí los filtros visibles
-          totales={contarPorEstado()}
-          onFiltrarEstado={handleFiltrarEstado}
-          placeholder="Buscar por nombre del estudiante…"
-        />
+      <div className="flex justify-between items-start gap-4 flex-wrap w-full">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[250px]">
+          <BarraFiltros
+            valorBusqueda={busqueda}
+            onBuscar={handleBuscar}
+            mostrarFiltroEstado={true}
+            estadoActual={estadoFiltro}
+            onFiltrarEstado={handleFiltrarEstado}
+            placeholder="Buscar por nombre del estudiante"
+          />
+        </div>
 
-        <Button
-          text="Crear alerta"
-          color="bg-pink-500"
-          icon={Plus}
-          onClick={() => navigate("/consultas/nueva")}
-        />
+        <div>
+          <Button
+            text="Crear alerta"
+            color="bg-pink-500"
+            icon={Plus}
+            onClick={() => navigate("/consultas/nueva")}
+          />
+        </div>
+      </div>
+
+      <div className="mt-2 text-sm text-gray-500">
+        Mostrando {alertasFiltradas.length} resultado(s)
       </div>
 
       <div className="space-y-2 mt-4">

@@ -91,7 +91,7 @@ export const EstudianteDetalle = () => {
                             text="Agregar alerta"
                             icon={Plus}
                             color="bg-blue-600"
-                            onClick={() => navigate(`/crear-alerta?estudianteId=${id}`)}
+                             onClick={() => navigate(`/consultas/nueva/${id}`)}
                         />
                     )}
                 </div>

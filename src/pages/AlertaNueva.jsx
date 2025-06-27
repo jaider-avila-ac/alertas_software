@@ -1,38 +1,30 @@
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Header } from "../components/Header";
-import { Sidebar } from "../components/Sidebar";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { FormularioConsulta } from "../components/FormularioConsulta";
+import { Layout } from "../layout/Layout";
 
 export const AlertaNueva = () => {
-  const { id } = useParams(); // Si viene como /nueva/:id
-  const [searchParams] = useSearchParams(); // Si viene como ?estudianteId=123
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const usuario = { nombre: "Docente Demo", rol: "Docente" };
 
-  // Se prioriza el id de la ruta, si no hay, se toma de query param
-  const idEstudiante = id || searchParams.get("estudianteId");
+  const idAlerta = id && window.location.pathname.includes("editar-alerta") ? id : null;
+  const idEstudiante = !idAlerta ? id || searchParams.get("estudianteId") : null;
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col ml-64">
-        <Header nombre={usuario.nombre} rol={usuario.rol} />
-
-        <main className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Nueva Alerta</h2>
-            <button
-              onClick={() => navigate(-1)}
-              className="text-blue-600 hover:underline"
-            >
-              Volver
-            </button>
-          </div>
-
-          <FormularioConsulta idEstudiante={idEstudiante} />
-        </main>
+    <Layout>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">
+          {idAlerta ? "Editar Alerta" : "Nueva Alerta"}
+        </h2>
+        <button
+          onClick={() => navigate(-1)}
+          className="text-blue-600 hover:underline"
+        >
+          Volver
+        </button>
       </div>
-    </div>
+
+      <FormularioConsulta idEstudiante={idEstudiante} idAlerta={idAlerta} />
+    </Layout>
   );
 };

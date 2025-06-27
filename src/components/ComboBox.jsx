@@ -5,9 +5,8 @@ export const ComboBox = ({ opciones = [], valor, onChange, label }) => {
       <select
         value={valor}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <option value="">Seleccione una opción</option>
         {opciones.map((op) => (
           <option key={op} value={op}>
             {op.charAt(0).toUpperCase() + op.slice(1).replace("_", " ")}

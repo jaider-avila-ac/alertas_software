@@ -5,7 +5,7 @@ import { Card } from "../components/Card";
 import { Esqueleto } from "../components/Esqueleto";
 import { CalendarClock, FileText, Users } from "lucide-react";
 
-import { obtenerCitas } from "../services/citaService";
+import { obtenerCitasPorPsico } from "../services/citaService"; // ✅ usa el seguro
 import { obtenerTodasConsultas } from "../services/consultaService";
 import { UserContext } from "../context/UserContext";
 import { ListadoEstudiantesPendientes } from "../components/psico/ListadoEstudiantesPendientes";
@@ -25,7 +25,7 @@ export const DashboardPsicorientador = () => {
       try {
         const [resConsultas, resCitas] = await Promise.all([
           obtenerTodasConsultas(),
-          obtenerCitas(),
+          obtenerCitasPorPsico(usuario.id), // ✅ solo citas del psico actual
         ]);
 
         const consultas = resConsultas.data || [];
@@ -36,7 +36,7 @@ export const DashboardPsicorientador = () => {
         setResumen({
           alertasPendientes,
           alertasCompletadas,
-          citas: resCitas.data.length,
+          citas: resCitas.data.length, // ✅ ya viene filtrado
         });
       } catch (error) {
         console.error("Error cargando resumen del psicorientador:", error);

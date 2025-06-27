@@ -11,15 +11,15 @@ import { Esqueleto } from "../components/Esqueleto";
 import { Users, AlertTriangle, BarChart4, Plus } from "lucide-react";
 import { AlertasContext } from "../context/AlertasContext";
 import { GraficoNiveles } from "../components/graficos/GraficoNiveles";
-import { UserContext } from "../context/UserContext"; 
+import { UserContext } from "../context/UserContext";
 
 export const DashboardDocente = () => {
   const [resumen, setResumen] = useState({ estudiantes: 0, alertas: 0, seguimientos: 0 });
   const [cargando, setCargando] = useState(true);
   const { alertas, setAlertas } = useContext(AlertasContext);
   const [alertasDocente, setAlertasDocente] = useState([]);
-  const { usuario } = useContext(UserContext); 
-  const docenteId = usuario?.id; 
+  const { usuario } = useContext(UserContext);
+  const docenteId = usuario?.id;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -127,17 +127,17 @@ export const DashboardDocente = () => {
         </div>
 
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-8 space-y-2 overflow-y-auto max-h-[500px] pr-2">
+          <div className="col-span-12 md:col-span-8 space-y-2 md:overflow-y-auto md:max-h-[500px]">
+
             {cargando
               ? Array(3)
-                  .fill(0)
-                  .map((_, i) => <Esqueleto key={i} className="h-24 w-full rounded" />)
+                .fill(0)
+                .map((_, i) => <Esqueleto key={i} className="h-24 w-full rounded" />)
               : alertasDocente.map((alerta) => (
-                  <AlertaCard key={alerta.id} alerta={alerta} />
-                ))}
+                <AlertaCard key={alerta.id} alerta={alerta} />
+              ))}
           </div>
-
-          <div className="col-span-4">
+          <div className="hidden md:block md:col-span-4">
             <GraficoNiveles />
           </div>
         </div>

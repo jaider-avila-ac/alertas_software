@@ -6,7 +6,8 @@ export const Card = ({ icon: Icon, label, total, bgColor, onClick }) => {
     >
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-lg font-bold">{label}</p>
+          {/* Oculta el label en móviles, visible desde sm en adelante */}
+          <p className="text-lg font-bold hidden sm:block">{label}</p>
           <p className="text-3xl">{total}</p>
         </div>
         <Icon size={36} />

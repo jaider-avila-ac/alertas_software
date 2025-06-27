@@ -17,7 +17,7 @@ export const CitaCard = ({ cita, onCancelar }) => {
   const fechaFormateada = new Date(fecha).toLocaleDateString("es-CO");
 
   const iniciarCita = () => {
-    navigate(`/psicorientador/citas/activa/${id}`);
+    navigate(`/citas/activa/${id}`);
   };
 
   return (

@@ -1,7 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import { obtenerEstudiantePorId, buscarEstudiante } from "../services/estudianteService";
+import { useNavigate } from "react-router-dom";
+import {
+  obtenerEstudiantePorId,
+  buscarEstudiante,
+} from "../services/estudianteService";
 import { obtenerDocentePorId } from "../services/docenteService";
-import { crearConsulta } from "../services/consultaService";
+import {
+  crearConsulta,
+  obtenerConsultaPorId,
+  actualizarConsulta,
+} from "../services/consultaService";
 import { InputElegante } from "../components/InputElegante";
 import { SelectAlerta } from "../components/SelectAlerta";
 import { Button } from "../components/Button";
@@ -9,9 +17,11 @@ import { Buscador } from "../components/Buscador";
 import { Notificacion } from "../components/Notificacion";
 import { TextAreaElegante } from "../components/TextAreaElegante";
 import { EstudianteFoto } from "../components/EstudianteFoto";
-import { AlertTriangle, CheckCircle, QrCode, Fingerprint } from "lucide-react";
+import { AlertTriangle, CheckCircle, QrCode, Fingerprint, } from "lucide-react";
 
-export const FormularioConsulta = ({ idEstudiante }) => {
+
+export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
+  const navigate = useNavigate();
   const [docenteId] = useState(1);
   const [docente, setDocente] = useState(null);
   const [estudiante, setEstudiante] = useState(null);
@@ -26,11 +36,58 @@ export const FormularioConsulta = ({ idEstudiante }) => {
   const contenedorRef = useRef(null);
 
   useEffect(() => {
-    if (idEstudiante) {
-      obtenerEstudiantePorId(idEstudiante).then((res) => setEstudiante(res.data));
-    }
-    obtenerDocentePorId(docenteId).then((res) => setDocente(res.data));
-  }, [idEstudiante]);
+    const cargarDatos = async () => {
+      if (idAlerta) {
+        try {
+          const res = await obtenerConsultaPorId(idAlerta);
+          const consulta = res.data;
+
+          if (
+            !consulta.estado ||
+            consulta.estado.toLowerCase() !== "pendiente"
+          ) {
+            setMensaje({
+              texto: "No puedes editar esta alerta. Ya no está en estado pendiente.",
+              color: "bg-yellow-500",
+              icono: AlertTriangle,
+            });
+
+            setTimeout(() => {
+              navigate("/consultas");
+            }, 2500);
+            return;
+          }
+
+          setMotivo(consulta.motivo || "");
+          setDescargos(consulta.descargos || "");
+          setAlerta(consulta.nivel?.toUpperCase() || "");
+          setPresente(consulta.presenciaEstudiante || false);
+          setMetodoValidacion(consulta.metodoValidacion || "NINGUNO");
+
+          if (consulta.estudiante?.id) {
+            const est = await obtenerEstudiantePorId(consulta.estudiante.id);
+            setEstudiante(est.data);
+          }
+
+          if (consulta.docente?.id) {
+            const doc = await obtenerDocentePorId(consulta.docente.id);
+            setDocente(doc.data);
+          }
+        } catch (error) {
+          console.error("Error al cargar la alerta:", error);
+        }
+      } else {
+        if (idEstudiante) {
+          obtenerEstudiantePorId(idEstudiante).then((res) =>
+            setEstudiante(res.data)
+          );
+        }
+        obtenerDocentePorId(docenteId).then((res) => setDocente(res.data));
+      }
+    };
+
+    cargarDatos();
+  }, [idEstudiante, idAlerta]);
 
   const manejarBusqueda = async () => {
     if (!busqueda.trim()) return;
@@ -64,63 +121,80 @@ export const FormularioConsulta = ({ idEstudiante }) => {
   };
 
   const manejarEnvio = async () => {
-  if (!motivo.trim() || !nivel || !estudiante) {
-    setMensaje({
-      texto: "Debe llenar todos los campos y seleccionar un estudiante.",
-      color: "bg-red-500",
-      icono: AlertTriangle,
-    });
-    return;
-  }
+    if (!motivo.trim() || !nivel || !estudiante) {
+      setMensaje({
+        texto: "Debe llenar todos los campos y seleccionar un estudiante.",
+        color: "bg-red-500",
+        icono: AlertTriangle,
+      });
+      return;
+    }
 
-  const palabras = motivo.trim().split(/\s+/);
-  if (palabras.length > 4) {
-    setMensaje({
-      texto: "El motivo no puede tener más de 4 palabras.",
-      color: "bg-yellow-500",
-      icono: AlertTriangle,
-    });
-    return;
-  }
+    const palabras = motivo.trim().split(/\s+/);
+    if (palabras.length > 4) {
+      setMensaje({
+        texto: "El motivo no puede tener más de 4 palabras.",
+        color: "bg-yellow-500",
+        icono: AlertTriangle,
+      });
+      return;
+    }
 
-  const datosConsulta = {
-    estudiante: { id: estudiante.id || estudiante.estu_id },
-    docente: { id: docenteId },
-    motivo,
-    descargos,
-    nivel: nivel.toLowerCase(), 
-    presenciaEstudiante: presente,
-    metodoValidacion, // ya está en mayúsculas como exige la BD
-    estado: "pendiente", // en minscula porque asi esta en la base de datos
+    const datosConsulta = {
+      estudiante: { id: estudiante.id || estudiante.estu_id },
+      docente: { id: docenteId },
+      motivo,
+      descargos,
+      nivel: nivel.toLowerCase(),
+      presenciaEstudiante: presente,
+      metodoValidacion,
+      estado: "pendiente",
+    };
+
+    console.log("JSON enviado al backend:", JSON.stringify(datosConsulta, null, 2));
+
+    try {
+      if (idAlerta) {
+        // 🟡 EDITAR
+        await actualizarConsulta(idAlerta, datosConsulta);
+        setMensaje({
+          texto: "Consulta actualizada correctamente.",
+          color: "bg-green-600",
+          icono: CheckCircle,
+        });
+      } else {
+        // 🟢 CREAR
+        await crearConsulta(datosConsulta);
+        setMensaje({
+          texto: "Consulta registrada con éxito.",
+          color: "bg-green-600",
+          icono: CheckCircle,
+        });
+      }
+
+      // Limpiar formulario
+      setMotivo("");
+      setDescargos("");
+      setAlerta("");
+      setBusqueda("");
+      setEstudiante(null);
+      setPresente(false);
+      setMetodoValidacion("NINGUNO");
+
+      // Redirigir
+      setTimeout(() => {
+        navigate("/consultas");
+      }, 1500);
+
+    } catch (error) {
+      setMensaje({
+        texto: "Error al guardar la alerta.",
+        color: "bg-red-500",
+        icono: AlertTriangle,
+      });
+      console.error("Error al guardar consulta:", error);
+    }
   };
-
-  console.log("JSON enviado al backend:", JSON.stringify(datosConsulta, null, 2));
-
-  try {
-    await crearConsulta(datosConsulta);
-    setMensaje({
-      texto: "Consulta registrada con éxito.",
-      color: "bg-green-600",
-      icono: CheckCircle,
-    });
-    setMotivo("");
-    setDescargos("");
-    setAlerta("");
-    setBusqueda("");
-    setEstudiante(null);
-    setPresente(false);
-    setMetodoValidacion("NINGUNO");
-  } catch (error) {
-    setMensaje({
-      texto: "Error al registrar la alerta.",
-      color: "bg-red-500",
-      icono: AlertTriangle,
-    });
-    console.error("Error al guardar consulta:", error);
-  }
-};
-
-
 
   return (
     <div className="max-w-5xl mx-auto p-6 bg-white rounded shadow">

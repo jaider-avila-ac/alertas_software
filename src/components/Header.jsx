@@ -1,8 +1,7 @@
 export const Header = () => {
-
   const usuario = {
     nombre: "Docente Demo",
-    rol: "Docente"
+    rol: "Docente",
   };
 
   return (

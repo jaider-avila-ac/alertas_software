@@ -9,3 +9,6 @@ export const crearSeguimiento = (data) => post(base, data);
 
 export const contarSeguimientosPorConsulta = (consultaId) =>
   get(`${base}/cantidad/${consultaId}`);
+
+export const obtenerEstudiantesConSeguimientos = () =>
+  get("/seguimientos/estudiantes-con-seguimientos");

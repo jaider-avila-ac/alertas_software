@@ -17,6 +17,9 @@ export const totalCitas = () => get(`${base}/total`);
 export const obtenerCitasPorEstudiante = (id) =>
   get(`${base}/buscar?estudiante=${id}`);
 
+export const obtenerCitasPorPsico = (psicId) =>
+  get(`/citas/buscar?psicorientador=${psicId}`);
+
 
 export const agendarCitaParaConsulta = (consultaId, psicorientadorId, fecha) =>
   post(

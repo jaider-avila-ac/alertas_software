@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import {
   obtenerTodosEstudiantes,
   obtenerImagenEstudiante,
 } from "../services/estudianteService";
+import { obtenerEstudiantesConSeguimientos } from "../services/seguimientoService";
 
 import { Table } from "../components/Table";
 import { Button } from "../components/Button";
@@ -13,7 +14,6 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Eye } from "lucide-react";
 import FotoPorDefecto from "../assets/fotos_estudiante/CARD_PERFIL.jpg";
 
-import { useContext } from "react";
 import { UserContext } from "../context/UserContext";
 
 export const EstudiantePage = () => {
@@ -23,9 +23,14 @@ export const EstudiantePage = () => {
   const [pagina, setPagina] = useState(1);
   const porPagina = 15;
   const navigate = useNavigate();
+  const { usuario } = useContext(UserContext);
 
   useEffect(() => {
-    cargarEstudiantes();
+    if (usuario.rol === 2) {
+      cargarEstudiantesConSeguimientos();
+    } else {
+      cargarEstudiantes();
+    }
   }, []);
 
   const cargarEstudiantes = async () => {
@@ -33,20 +38,33 @@ export const EstudiantePage = () => {
       const res = await obtenerTodosEstudiantes();
       const lista = res.data;
       setEstudiantes(lista);
-
-      // Pre-cargar imagenes por estudiante
-      lista.forEach(async (est) => {
-        try {
-          const resImg = await obtenerImagenEstudiante(est.id);
-          const url = URL.createObjectURL(resImg.data);
-          setFotos((prev) => ({ ...prev, [est.id]: url }));
-        } catch {
-          setFotos((prev) => ({ ...prev, [est.id]: FotoPorDefecto }));
-        }
-      });
+      precargarFotos(lista);
     } catch (error) {
       console.error("Error al cargar estudiantes:", error);
     }
+  };
+
+  const cargarEstudiantesConSeguimientos = async () => {
+    try {
+      const res = await obtenerEstudiantesConSeguimientos();
+      const lista = res.data;
+      setEstudiantes(lista);
+      precargarFotos(lista);
+    } catch (error) {
+      console.error("Error al cargar estudiantes con seguimientos:", error);
+    }
+  };
+
+  const precargarFotos = (lista) => {
+    lista.forEach(async (est) => {
+      try {
+        const resImg = await obtenerImagenEstudiante(est.id);
+        const url = URL.createObjectURL(resImg.data);
+        setFotos((prev) => ({ ...prev, [est.id]: url }));
+      } catch {
+        setFotos((prev) => ({ ...prev, [est.id]: FotoPorDefecto }));
+      }
+    });
   };
 
   const estudiantesFiltrados = estudiantes.filter((e) =>
@@ -58,7 +76,6 @@ export const EstudiantePage = () => {
   const totalPaginas = Math.ceil(estudiantesFiltrados.length / porPagina);
   const inicio = (pagina - 1) * porPagina;
   const visibles = estudiantesFiltrados.slice(inicio, inicio + porPagina);
-  const { usuario } = useContext(UserContext);
 
   const cambiarPagina = (nueva) => {
     if (nueva >= 1 && nueva <= totalPaginas) setPagina(nueva);

@@ -16,16 +16,18 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/estudiantes" element={<EstudiantePage />} />
+          <Route path="/seguimientos" element={<EstudiantePage />} />
         <Route path="/consultas" element={<PageAlertas />} />
         <Route path="/consultas/nueva" element={<AlertaNueva />} />
         <Route path="/consultas/nueva/:id" element={<AlertaNueva />} />
         <Route path="/estudiantes/:id" element={<EstudianteDetalle />} />
         <Route path="/seguimientos/:id" element={<SeguimientosPorConsulta />} />
         <Route path="/estadisticas" element={<EstadisticasPage />} />
-        <Route path="/psicorientador/citas" element={<CitasPage />} />
+        <Route path="/citas" element={<CitasPage />} />
         <Route path="/alertas" element={<AlertasPage />} />
-        <Route path="/psicorientador/citas/activa/:id" element={<CitaActiva />} />
-        <Route path="/crear-alerta" element={<AlertaNueva />} />
+        <Route path="/citas/activa/:id" element={<CitaActiva />} />
+        <Route path="/editar-alerta/:id" element={<AlertaNueva />} />
+      
 
       </Routes>
     </Router>

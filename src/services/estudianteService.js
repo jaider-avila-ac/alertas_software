@@ -10,12 +10,9 @@ export const actualizarEstudiante = (id, data) => put(`${base}/${id}`, data);
 export const eliminarEstudiante = (id) => del(`${base}/${id}`);
 export const totalEstudiantes = () => get(`${base}/total`);
 
-
-import axios from "axios";
 export const obtenerImagenEstudiante = (id) =>
-  axios.get(`http://localhost:8085/api/estudiantes/${id}/imagen`, {
-    responseType: "blob",
-  });
+  get(`${base}/${id}/imagen`, { responseType: "blob" });
+
 
 export const subirImagenEstudiante = (id, archivo) => {
   const formData = new FormData();

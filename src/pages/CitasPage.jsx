@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
-import { obtenerCitas, cancelarCita as cancelarCitaService } from "../services/citaService";
+import { obtenerCitasPorPsico, cancelarCita as cancelarCitaService } from "../services/citaService";
 import { Layout } from "../layout/Layout";
 import { CitaCard } from "../components/psico/CitaCard";
+import { UserContext } from "../context/UserContext";
 
 export const CitasPage = () => {
   const [citas, setCitas] = useState([]);
+  const { usuario } = useContext(UserContext); 
 
   const cargarCitas = async () => {
     try {
-      const res = await obtenerCitas();
+      const res = await obtenerCitasPorPsico(usuario.id); 
       setCitas(res.data || []);
     } catch (error) {
       console.error("Error al cargar citas:", error);
@@ -17,8 +18,8 @@ export const CitasPage = () => {
 
   const manejarCancelacion = async (id) => {
     try {
-      await cancelarCitaService(id); 
-      cargarCitas(); 
+      await cancelarCitaService(id);
+      cargarCitas();
     } catch (error) {
       console.error("Error al cancelar cita:", error);
     }
