@@ -1,14 +1,15 @@
-import { CalendarDays, User, AlertCircle } from "lucide-react";
+import { CalendarDays, User, AlertCircle, Brain } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../Button";
 
-export const CitaCard = ({ cita, onCancelar }) => {
+export const CitaCard = ({ cita, onCancelar, mostrarPsico = false, esAdmin = false }) => {
   const navigate = useNavigate();
 
   const {
     id,
     fecha,
     estudiante: { nombres, apellidos, curso } = {},
+    psicorientador,
     consultas = [],
     estado,
   } = cita;
@@ -40,14 +41,20 @@ export const CitaCard = ({ cita, onCancelar }) => {
         <p className="text-xs text-gray-500">
           <strong>Estado:</strong> {estado}
         </p>
+
+        {mostrarPsico && psicorientador?.nombres && (
+          <p className="flex items-center gap-1 text-sm text-gray-600">
+            <Brain size={14} /> <strong>Psicorientador:</strong> {psicorientador.nombres}
+          </p>
+        )}
       </div>
 
-      {estado === "pendiente" && (
-        <div className="flex gap-2 pt-2">
-          <Button text="Iniciar" color="bg-blue-600" onClick={iniciarCita} />
-          <Button text="Cancelar" color="bg-red-600" onClick={() => onCancelar(id)} />
-        </div>
-      )}
+     {estado === "pendiente" && onCancelar && !esAdmin && (
+  <div className="flex gap-2 pt-2">
+    <Button text="Iniciar" color="bg-blue-600" onClick={iniciarCita} />
+    <Button text="Cancelar" color="bg-red-600" onClick={() => onCancelar(id)} />
+  </div>
+)}
     </div>
   );
 };

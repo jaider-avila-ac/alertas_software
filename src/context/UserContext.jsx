@@ -4,9 +4,9 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [usuario, setUsuario] = useState({
-    id: 1, // ✅ ID del psicorientador (ajústalo si necesitas otro valor)
+    id: 7, // ✅ ID del psicorientador (ajústalo si necesitas otro valor)
     nombre: "Usuario Demo",
-    rol: 0, //  0 (docente) y 2 (psicorientador)
+    rol: 3, //  0 (docente) y 2 (psicorientador) 1 estudiante y 3 adminsitrador
   });
 
   return (

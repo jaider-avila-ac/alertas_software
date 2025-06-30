@@ -26,16 +26,18 @@ export const SeguimientosPorConsulta = () => {
           const observacionesData = resObs.data || [];
 
           const fila = {
+            Estado: seguimiento.consulta?.estado || "No definido",
+            Seguimiento: seguimiento.consulta?.motivo || "Sin motivo",
             Fecha: seguimiento.fechaInicio
               ? new Date(seguimiento.fechaInicio).toLocaleDateString()
               : "Sin fecha",
-            Estado: seguimiento.consulta?.estado || "No definido",
-            Seguimiento: seguimiento.consulta?.motivo || "Sin motivo",
           };
 
           setDatosTabla([fila]);
 
-          // Ordenar observaciones por fecha ascendente
+          setDatosTabla([fila]);
+
+          //ordenar por ccha
           const ordenadas = observacionesData.sort(
             (a, b) => new Date(a.fecha) - new Date(b.fecha)
           );
@@ -67,7 +69,7 @@ export const SeguimientosPorConsulta = () => {
           <Esqueleto className="h-32 w-full rounded" />
         ) : (
           <>
-            <Table columns={["Fecha", "Estado", "Seguimiento"]} data={datosTabla} />
+            <Table columns={["Estado", "Seguimiento", "Fecha"]} data={datosTabla} />
 
             <section className="mt-8">
               <h3 className="text-xl font-semibold mb-4">Observaciones</h3>

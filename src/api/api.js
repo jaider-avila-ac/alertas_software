@@ -16,6 +16,7 @@ const api = axios.create({
 // Métodos genéricos
 export const get = (endpoint, config = {}) => api.get(endpoint, config);
 
-export const post = (endpoint, data) => api.post(endpoint, data);
+export const post = (endpoint, data, config = {}) => api.post(endpoint, data, config);
+
 export const put = (endpoint, data) => api.put(endpoint, data);
 export const del = (endpoint) => api.delete(endpoint);

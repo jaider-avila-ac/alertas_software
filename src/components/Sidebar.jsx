@@ -8,8 +8,11 @@ import {
   BarChart4,
   User,
   FileText,
+  UserCog,
   CalendarDays,
+  UserPlus,
 } from "lucide-react";
+
 import { SidebarItem } from "./SidebarItem";
 import logo from "../assets/alertas-logo.png";
 import { UserContext } from "../context/UserContext";
@@ -36,6 +39,17 @@ export const Sidebar = () => {
     { icon: BarChart4, label: "Estadísticas", path: "/estadisticas" },
   ];
 
+const itemsAdmin = [
+  { icon: Home, label: "Inicio", path: "/" },
+  { icon: Users, label: "Estudiantes", path: "/estudiantes" },
+  { icon: UserPlus, label: "Docentes", path: "/docentes" },
+  { icon: UserCog, label: "Psicorientadores", path: "/psicos" }, 
+  { icon: AlertTriangle, label: "Alertas", path: "/consultas" }, 
+  { icon: CalendarDays, label: "Citas", path: "/citas" },
+  { icon: FileText, label: "Seguimientos", path: "/seguimientos" },
+   { icon: BarChart4, label: "Estadísticas", path: "/estadisticas" },
+];
+
   const itemsPsico = [
     { icon: Home, label: "Inicio", path: "/" },
     { icon: CalendarDays, label: "Citas", path: "/citas" },
@@ -44,18 +58,31 @@ export const Sidebar = () => {
     { icon: BarChart4, label: "Estadísticas", path: "/estadisticas" },
   ];
 
+
+  const itemsEstudiante = [
+    { icon: Home, label: "Inicio", path: "/" },
+    { icon: AlertTriangle, label: "Alertas", path: "/mis-alertas" },
+    { icon: CalendarDays, label: "Citas", path: "/citas" },
+  ];
+
   const comunes = [
     { icon: User, label: "Perfil", path: "/perfil" },
     { icon: LogOut, label: "Cerrar sesión", path: "/logout", ocultarEnMovil: true },
   ];
 
-  const items = usuario.rol === 2
-    ? [...itemsPsico, ...comunes]
-    : [...itemsDocente, ...comunes];
+  let items = [];
 
-  const tipoLayout = esEscritorio
-    ? "vertical"
-    : "horizontal"; // para móvil y tablet
+  if (usuario.rol === 0) {
+    items = [...itemsDocente, ...comunes];
+  } else if (usuario.rol === 2) {
+    items = [...itemsPsico, ...comunes];
+  } else if (usuario.rol === 1) {
+    items = [...itemsEstudiante, ...comunes];
+  }else if (usuario.rol === 3) {
+    items = [...itemsAdmin, ...comunes];
+  }
+
+  const tipoLayout = esEscritorio ? "vertical" : "horizontal";
 
   return (
     <aside
@@ -74,7 +101,10 @@ export const Sidebar = () => {
       )}
 
       <div
-        className={`flex-1 ${tipoLayout === "horizontal" ? "flex gap-4 justify-center" : "space-y-4 w-full"}`}
+        className={`flex-1 ${tipoLayout === "horizontal"
+            ? "flex gap-4 justify-center"
+            : "space-y-4 w-full"
+          }`}
       >
         {items.map((item, i) => {
           if ((esMovil || esTablet) && item.ocultarEnMovil) return null;
@@ -83,7 +113,13 @@ export const Sidebar = () => {
             <SidebarItem
               key={i}
               icon={item.icon}
-              label={tipoLayout === "vertical" ? item.label : esTablet ? item.label : ""}
+              label={
+                tipoLayout === "vertical"
+                  ? item.label
+                  : esTablet
+                    ? item.label
+                    : ""
+              }
               path={item.path}
               active={
                 location.pathname === item.path ||

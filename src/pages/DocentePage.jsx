@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { obtenerTodosEstudiantes } from "../services/estudianteService";
+import { obtenerTodosDocentes } from "../services/docenteService";
 
 import { Table } from "../components/Table";
 import { Button } from "../components/Button";
@@ -12,12 +12,12 @@ import { Notificacion } from "../components/Notificacion";
 import { Pencil, Plus, UserPlus } from "lucide-react";
 import { UserContext } from "../context/UserContext";
 import {
-  generarUsuarioEstudiante,
-  generarUsuariosEstudiantesMasivo,
+  generarUsuarioDocente,
+  generarUsuariosDocentesMasivo,
 } from "../services/usuarioService";
 
-export const EstudiantePage = () => {
-  const [estudiantes, setEstudiantes] = useState([]);
+export const DocentePage = () => {
+  const [docentes, setDocentes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const porPagina = 15;
@@ -30,50 +30,50 @@ export const EstudiantePage = () => {
 
   useEffect(() => {
     if (usuario.rol === 3) {
-      cargarEstudiantes();
+      cargarDocentes();
     }
   }, []);
 
-  const cargarEstudiantes = async () => {
+  const cargarDocentes = async () => {
     try {
-      const res = await obtenerTodosEstudiantes();
-      setEstudiantes(res.data);
+      const res = await obtenerTodosDocentes();
+      setDocentes(res.data);
     } catch (error) {
-      console.error("Error al cargar estudiantes:", error);
+      console.error("Error al cargar docentes:", error);
     }
   };
 
-  const estudiantesFiltrados = estudiantes.filter((e) =>
-    `${e.nombres} ${e.apellidos} ${e.nroDoc}`.toLowerCase().includes(busqueda.toLowerCase())
+  const docentesFiltrados = docentes.filter((d) =>
+    `${d.nombres} ${d.apellidos} ${d.nroDoc}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const totalPaginas = Math.ceil(estudiantesFiltrados.length / porPagina);
+  const totalPaginas = Math.ceil(docentesFiltrados.length / porPagina);
   const inicio = (pagina - 1) * porPagina;
-  const visibles = estudiantesFiltrados.slice(inicio, inicio + porPagina);
+  const visibles = docentesFiltrados.slice(inicio, inicio + porPagina);
 
   const cambiarPagina = (nueva) => {
     if (nueva >= 1 && nueva <= totalPaginas) setPagina(nueva);
   };
 
-  const datosTabla = visibles.map((e) => ({
-    Documento: e.nroDoc,
-    Nombre: `${e.nombres} ${e.apellidos}`,
-    Correo: e.correo || "-",
+  const datosTabla = visibles.map((d) => ({
+    Documento: d.nroDoc,
+    Nombre: `${d.nombres} ${d.apellidos}`,
+    Correo: d.correo || "-",
     Acciones: (
       <div className="flex gap-2">
         <Button
           icon={Pencil}
           title="Editar"
           color="bg-yellow-500"
-          onClick={() => navigate(`/formulario-estudiante/${e.id}`)}
+          onClick={() => navigate(`/formulario-docente/${d.id}`)}
         />
-        {!e.usuario && (
+        {!d.usuario && (
           <Button
             title="Generar usuario"
             icon={UserPlus}
             color="bg-green-700"
             onClick={() =>
-              setModalIndividual({ visible: true, cedula: e.nroDoc })
+              setModalIndividual({ visible: true, cedula: d.nroDoc })
             }
           />
         )}
@@ -96,13 +96,13 @@ export const EstudiantePage = () => {
     <Layout>
       <main className="flex-1 space-y-4 overflow-y-auto">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Estudiantes</h2>
+          <h2 className="text-2xl font-bold">Docentes</h2>
           <div className="flex gap-2">
             <Button
-              text="Agregar estudiante"
+              text="Agregar docente"
               icon={Plus}
               color="bg-blue-600"
-              onClick={() => navigate("/formulario-estudiante")}
+              onClick={() => navigate("/formulario-docente")}
             />
             <Button
               text="Generar usuarios"
@@ -150,7 +150,7 @@ export const EstudiantePage = () => {
         {/* MODAL MASIVO */}
         <ModalBase visible={modalMasivo} onClose={() => setModalMasivo(false)}>
           <h3 className="text-xl font-semibold mb-4">
-            ¿Generar usuarios para todos los estudiantes sin usuario?
+            ¿Generar usuarios para todos los docentes sin usuario?
           </h3>
           <div className="flex justify-end gap-2 mt-4">
             <Button
@@ -163,9 +163,9 @@ export const EstudiantePage = () => {
               color="bg-green-600"
               onClick={async () => {
                 try {
-                  await generarUsuariosEstudiantesMasivo();
+                  await generarUsuariosDocentesMasivo();
                   setModalMasivo(false);
-                  cargarEstudiantes();
+                  cargarDocentes();
                   setNoti({ visible: true, texto: "Usuarios generados correctamente", color: "green" });
                 } catch (err) {
                   setNoti({ visible: true, texto: "Error al generar usuarios", color: "red" });
@@ -195,9 +195,9 @@ export const EstudiantePage = () => {
               color="bg-green-600"
               onClick={async () => {
                 try {
-                  await generarUsuarioEstudiante(modalIndividual.cedula);
+                  await generarUsuarioDocente(modalIndividual.cedula);
                   setModalIndividual({ visible: false, cedula: "" });
-                  cargarEstudiantes();
+                  cargarDocentes();
                   setNoti({ visible: true, texto: "Usuario generado correctamente", color: "green" });
                 } catch (err) {
                   setNoti({ visible: true, texto: "Error al generar usuario", color: "red" });
