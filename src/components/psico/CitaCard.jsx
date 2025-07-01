@@ -35,9 +35,7 @@ export const CitaCard = ({ cita, onCancelar, mostrarPsico = false, esAdmin = fal
         <p className="flex items-center gap-1">
           <AlertCircle size={14} /> <strong>Curso:</strong> {curso || "N/D"}
         </p>
-        <p className="flex items-center gap-1">
-          <CalendarDays size={14} /> <strong>Alertas asociadas:</strong> {consultas.length}
-        </p>
+       
         <p className="text-xs text-gray-500">
           <strong>Estado:</strong> {estado}
         </p>
@@ -49,12 +47,12 @@ export const CitaCard = ({ cita, onCancelar, mostrarPsico = false, esAdmin = fal
         )}
       </div>
 
-     {estado === "pendiente" && onCancelar && !esAdmin && (
-  <div className="flex gap-2 pt-2">
-    <Button text="Iniciar" color="bg-blue-600" onClick={iniciarCita} />
-    <Button text="Cancelar" color="bg-red-600" onClick={() => onCancelar(id)} />
-  </div>
-)}
+      {estado === "pendiente" && onCancelar && !esAdmin && (
+        <div className="flex gap-2 pt-2">
+          <Button text="Iniciar" color="bg-blue-600" onClick={iniciarCita} />
+          <Button text="Cancelar" color="bg-red-600" onClick={() => onCancelar(id)} />
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { obtenerTodosPsicos } from "../services/psicoService";
 import { generarUsuarioPsicorientador, generarUsuariosPsicorientadoresMasivo } from "../services/usuarioService";
 
@@ -27,7 +27,7 @@ export const PsicoPage = () => {
 
   useEffect(() => {
     if (usuario.rol === 3) cargarPsicos();
-  }, []);
+  }, [usuario, location]);
 
   const cargarPsicos = async () => {
     try {

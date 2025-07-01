@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { obtenerTodosDocentes } from "../services/docenteService";
 
 import { Table } from "../components/Table";
@@ -8,6 +9,7 @@ import { Buscador } from "../components/Buscador";
 import { Layout } from "../layout/Layout";
 import { ModalBase } from "../components/ModalBase";
 import { Notificacion } from "../components/Notificacion";
+
 
 import { Pencil, Plus, UserPlus } from "lucide-react";
 import { UserContext } from "../context/UserContext";
@@ -28,12 +30,13 @@ export const DocentePage = () => {
   const [modalIndividual, setModalIndividual] = useState({ visible: false, cedula: "" });
   const [noti, setNoti] = useState({ visible: false, texto: "", color: "" });
 
-  useEffect(() => {
-    if (usuario.rol === 3) {
-      cargarDocentes();
-    }
-  }, []);
+const location = useLocation();
 
+useEffect(() => {
+  if (usuario?.rol === 3) {
+    cargarDocentes();
+  }
+}, [usuario, location]);
   const cargarDocentes = async () => {
     try {
       const res = await obtenerTodosDocentes();
@@ -147,7 +150,7 @@ export const DocentePage = () => {
           />
         </div>
 
-        {/* MODAL MASIVO */}
+ 
         <ModalBase visible={modalMasivo} onClose={() => setModalMasivo(false)}>
           <h3 className="text-xl font-semibold mb-4">
             ¿Generar usuarios para todos los docentes sin usuario?
@@ -176,7 +179,7 @@ export const DocentePage = () => {
           </div>
         </ModalBase>
 
-        {/* MODAL INDIVIDUAL */}
+
         <ModalBase
           visible={modalIndividual.visible}
           onClose={() => setModalIndividual({ visible: false, cedula: "" })}
@@ -208,7 +211,7 @@ export const DocentePage = () => {
           </div>
         </ModalBase>
 
-        {/* NOTIFICACIÓN */}
+
         {noti.visible && (
           <Notificacion
             texto={noti.texto}
