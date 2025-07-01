@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Button } from "../Button";
 import { Layout } from "../../layout/Layout";
 import {
@@ -19,10 +19,13 @@ import {
   cambiarEstadoConsulta,
 } from "../../services/consultaService";
 import { ComboBox } from "../ComboBox";
+import { NotificacionFlotante } from "../NotificacionFlotante";
+import { UserContext } from "../../context/UserContext";
 
 export const CitaActiva = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { usuario } = useContext(UserContext);
 
   const [cita, setCita] = useState(null);
   const [consultas, setConsultas] = useState([]);
@@ -31,6 +34,8 @@ export const CitaActiva = () => {
   const [textoNuevo, setTextoNuevo] = useState({});
   const [estadoConsulta, setEstadoConsulta] = useState({});
   const [cargando, setCargando] = useState(true);
+  const [notificacion, setNotificacion] = useState(null);
+  const [citaFinalizada, setCitaFinalizada] = useState(false);
 
   useEffect(() => {
     const cargar = async () => {
@@ -38,6 +43,11 @@ export const CitaActiva = () => {
         const res = await obtenerCitaPorId(id);
         const citaData = res.data;
         setCita(citaData);
+
+        if (citaData.estado === "usada") {
+          setCitaFinalizada(true);
+          return;
+        }
 
         const estudianteId = citaData.estudiante?.id;
         if (!estudianteId) return;
@@ -55,8 +65,20 @@ export const CitaActiva = () => {
           let seguimiento = resp.data;
 
           if (!seguimiento?.id) {
-            const nuevo = await crearSeguimiento({ consultaId: consulta.id });
+            const nuevo = await crearSeguimiento({
+              consulta: { id: consulta.id },
+              psicorientador: { id: usuario.id },
+              fechaInicio: new Date().toISOString().slice(0, 10),
+            });
+
             seguimiento = nuevo.data;
+            if (!seguimiento?.id) {
+              setNotificacion({
+                mensaje: `Error al crear seguimiento para consulta #${consulta.id}`,
+                tipo: "error",
+              });
+              continue;
+            }
           }
 
           seguimientosMap[consulta.id] = seguimiento.id;
@@ -70,13 +92,17 @@ export const CitaActiva = () => {
         setObservaciones(observacionesMap);
       } catch (err) {
         console.error("Error al cargar cita:", err);
+        setNotificacion({
+          mensaje: "Error al cargar los datos de la cita.",
+          tipo: "error",
+        });
       } finally {
         setCargando(false);
       }
     };
 
     cargar();
-  }, [id]);
+  }, [id, usuario.id]);
 
   const manejarCambioTexto = (consultaId, texto) => {
     setTextoNuevo((prev) => ({ ...prev, [consultaId]: texto }));
@@ -89,7 +115,7 @@ export const CitaActiva = () => {
   const guardarObservacion = async (consultaId) => {
     const texto = textoNuevo[consultaId];
     const seguimientoId = seguimientos[consultaId];
-    if (!texto || !seguimientoId) return;
+    if (!texto?.trim() || !seguimientoId) return;
 
     await crearObservacion({
       texto,
@@ -103,27 +129,65 @@ export const CitaActiva = () => {
 
   const finalizarCita = async () => {
     for (const consulta of consultas) {
-      const texto = textoNuevo[consulta.id];
-      const estado = estadoConsulta[consulta.id];
+      const idConsulta = consulta.id;
+      const texto = textoNuevo[idConsulta];
+      const estado = estadoConsulta[idConsulta];
+      const seguimientoId = seguimientos[idConsulta];
+      const tieneObservaciones = observaciones[idConsulta]?.length > 0;
+      const tieneTextoNuevo = texto?.trim();
 
-      if (!texto?.trim() || !estado) {
-        alert(" Cada consulta debe tener observación escrita y estado seleccionado.");
+      if (!estado || (!tieneObservaciones && !tieneTextoNuevo)) {
+        setNotificacion({
+          mensaje: "Cada consulta debe tener observación escrita y estado seleccionado.",
+          tipo: "error",
+        });
         return;
       }
 
-      await guardarObservacion(consulta.id);
-      await cambiarEstadoConsulta(consulta.id, estado);
+      if (tieneTextoNuevo) {
+        await guardarObservacion(idConsulta);
+      }
+
+      try {
+        await cambiarEstadoConsulta(idConsulta, estado);
+      } catch (error) {
+        console.error("Error actualizando estado consulta", error);
+      }
     }
 
-    await cambiarEstadoCita(id, "usada");
-    navigate("/psicorientador/citas");
+    try {
+      await cambiarEstadoCita(id, "usada");
+      navigate("/citas");
+    } catch (error) {
+      console.error("Error cambiando estado cita:", error);
+      setNotificacion({
+        mensaje: "No se pudo finalizar la cita correctamente.",
+        tipo: "error",
+      });
+    }
   };
 
   const volver = () => {
-    navigate("/psicorientador/citas");
+    navigate("/citas");
   };
 
-  if (cargando || !cita) return <p className="p-6">Cargando cita...</p>;
+  if (cargando) return <p className="p-6">Cargando cita...</p>;
+
+  if (citaFinalizada) {
+    return (
+      <Layout>
+        <div className="p-6 text-center space-y-4 flex flex-col items-center">
+          <h2 className="text-xl font-semibold text-gray-700">
+            Esta cita ya fue finalizada.
+          </h2>
+          <p className="text-gray-500">
+            No puedes modificar una cita con estado <strong>usada</strong>.
+          </p>
+         <Button text="Volver" color="bg-gray-600" onClick={volver} />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -185,6 +249,14 @@ export const CitaActiva = () => {
           <Button text="Finalizar cita" color="bg-blue-600" onClick={finalizarCita} />
         </div>
       </main>
+
+      {notificacion && (
+        <NotificacionFlotante
+          mensaje={notificacion.mensaje}
+          tipo={notificacion.tipo}
+          onClose={() => setNotificacion(null)}
+        />
+      )}
     </Layout>
   );
 };

@@ -36,33 +36,28 @@ export const DashboardDocente = () => {
           seguimientos: 0,
         });
 
-        if (!alertas || alertas.length === 0) {
-          const res = await obtenerTodasConsultas();
-          const datos = res.data || [];
+        const res = await obtenerTodasConsultas();
+        const datos = res.data || [];
 
-          // Filtrar por docente
-          const filtradas = datos.filter((c) => c.docenteId === docenteId);
+        const filtradas = datos.filter((c) => c.docenteId === docenteId);
 
-          const procesadas = filtradas.map((c) => {
-            const nivel = c.nivel?.toLowerCase();
-            const visual = alertaVisual[nivel] || {};
-            return {
-              id: c.id,
-              nombreEstudiante: c.nombreEstudiante,
-              motivo: c.motivo,
-              fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
-              estado: c.estado,
-              nivel,
-              icono: visual.icono,
-              color: visual.color,
-            };
-          });
+        const procesadas = filtradas.map((c) => {
+          const nivel = c.nivel?.toLowerCase();
+          const visual = alertaVisual[nivel] || {};
+          return {
+            id: c.id,
+            nombreEstudiante: c.nombreEstudiante,
+            motivo: c.motivo,
+            fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
+            estado: c.estado,
+            nivel,
+            icono: visual.icono,
+            color: visual.color,
+          };
+        });
 
-          setAlertas(procesadas);
-          setAlertasDocente(procesadas);
-        } else {
-          setAlertasDocente(alertas);
-        }
+        setAlertas(procesadas);
+        setAlertasDocente(procesadas);
       } catch (error) {
         console.error("Error cargando dashboard:", error);
       } finally {
@@ -71,7 +66,7 @@ export const DashboardDocente = () => {
     };
 
     fetchData();
-  }, [alertas, setAlertas, docenteId]);
+  }, [docenteId]);
 
   return (
     <Layout>
@@ -128,17 +123,22 @@ export const DashboardDocente = () => {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12 md:col-span-8 space-y-2 md:overflow-y-auto md:max-h-[500px]">
-
-            {cargando
-              ? Array(3)
+            {cargando ? (
+              Array(3)
                 .fill(0)
                 .map((_, i) => <Esqueleto key={i} className="h-24 w-full rounded" />)
-              : alertasDocente.map((alerta) => (
+            ) : alertasDocente.length > 0 ? (
+              alertasDocente.map((alerta) => (
                 <AlertaCard key={alerta.id} alerta={alerta} />
-              ))}
+              ))
+            ) : (
+              <div className="p-4 bg-yellow-100 text-yellow-800 rounded">
+                No tienes alertas creadas.
+              </div>
+            )}
           </div>
           <div className="hidden md:block md:col-span-4">
-            <GraficoNiveles />
+            <GraficoNiveles data={alertasDocente} />
           </div>
         </div>
       </main>

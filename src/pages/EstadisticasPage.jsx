@@ -11,6 +11,7 @@ import { ReportePDF } from "../components/ReportePDF";
 import html2pdf from "html2pdf.js";
 import { Button } from "../components/Button";
 import { FileText } from "lucide-react";
+import { Esqueleto } from "../components/Esqueleto";
 
 export const EstadisticasPage = () => {
   const [datos, setDatos] = useState(null);
@@ -37,7 +38,33 @@ export const EstadisticasPage = () => {
     html2pdf().set(opciones).from(refPDF.current).save();
   };
 
-  if (!datos) return <div className="p-4">Cargando estadísticas...</div>;
+if (!datos) {
+  return (
+    <Layout>
+      <main className="p-4 space-y-4">
+        <h2 className="text-2xl font-bold">Estadísticas Generales</h2>
+        
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12">
+            <Esqueleto className="h-40 w-full" />
+          </div>
+          <div className="col-span-12 lg:col-span-4">
+            <Esqueleto className="h-48 w-full" />
+          </div>
+          <div className="col-span-12 lg:col-span-4">
+            <Esqueleto className="h-48 w-full" />
+          </div>
+          <div className="col-span-12 lg:col-span-4">
+            <Esqueleto className="h-48 w-full" />
+          </div>
+          <div className="col-span-12">
+            <Esqueleto className="h-80 w-full" />
+          </div>
+        </div>
+      </main>
+    </Layout>
+  );
+}
 
   return (
     <Layout>

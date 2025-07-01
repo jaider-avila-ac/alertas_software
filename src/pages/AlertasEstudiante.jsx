@@ -25,12 +25,12 @@ export const AlertasEstudiante = () => {
 
         const resAlertas = await buscarConsultaPorEstudiante(usuario.id);
         const alertasFormateadas = resAlertas.data.map((a) => ({
-          ID: a.id,
-          Motivo: a.motivo,
-          Fecha: new Date(a.fecha).toLocaleDateString(),
-          Estado: a.estado || "Sin estado",
-          Nivel: a.alerta || "Sin nivel",
-        }));
+  ID: a.id,
+  Motivo: a.motivo,
+  Fecha: new Date(a.fecha).toLocaleDateString(),
+  Estado: a.estado || "Sin estado",
+  Nivel: a.nivel || "Sin nivel", // <- corregido aquí
+}));
 
         setAlertas(alertasFormateadas);
       } catch (error) {

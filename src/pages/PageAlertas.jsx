@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { procesarConsultas } from "../utils/procesarConsultas";
 import { alertaVisual } from "../utils/alertaVisual";
 import { AlertaCard } from "../components/AlertaCard";
@@ -9,8 +9,10 @@ import { Plus } from "lucide-react";
 import { Layout } from "../layout/Layout";
 import { Esqueleto } from "../components/Esqueleto";
 import { AlertasContext } from "../context/AlertasContext";
+import { UserContext } from "../context/UserContext";
 
 export const PageAlertas = () => {
+  const { usuario } = useContext(UserContext);
   const { alertas, setAlertas } = useContext(AlertasContext);
   const [alertasFiltradas, setAlertasFiltradas] = useState([]);
   const [busqueda, setBusqueda] = useState("");
@@ -18,44 +20,42 @@ export const PageAlertas = () => {
   const [cargando, setCargando] = useState(true);
 
   const [searchParams] = useSearchParams();
+  const location = useLocation(); // <- Detecta cambios de ruta
   const estudianteIdParam = searchParams.get("estudianteId");
-
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAlertas = async () => {
-      if (!alertas) {
-        try {
-          const datos = await procesarConsultas();
-          const procesadas = datos.map((c) => {
-            const nivel = c.nivel?.toLowerCase();
-            const visual = alertaVisual[nivel] || {};
-            return {
-              id: c.id,
-              estudianteId: c.estudianteId,
-              nombreEstudiante: c.nombreEstudiante || "Sin nombre",
-              motivo: c.motivo || "Sin motivo",
-              estado: c.estado || "pendiente",
-              fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
-              nivel,
-              icono: visual.icono,
-              color: visual.color,
-            };
-          });
+      setCargando(true);
 
-          setAlertas(procesadas);
-        } catch (error) {
-          console.error("Error al cargar alertas:", error);
-        } finally {
-          setCargando(false);
-        }
-      } else {
+      try {
+        const datos = await procesarConsultas();
+        const procesadas = datos.map((c) => {
+          const nivel = c.nivel?.toLowerCase();
+          const visual = alertaVisual[nivel] || {};
+          return {
+            id: c.id,
+            estudianteId: c.estudianteId,
+            nombreEstudiante: c.nombreEstudiante || "Sin nombre",
+            motivo: c.motivo || "Sin motivo",
+            estado: c.estado || "pendiente",
+            fecha: c.fecha ? new Date(c.fecha).toLocaleDateString() : "Sin fecha",
+            nivel,
+            icono: visual.icono,
+            color: visual.color,
+          };
+        });
+
+        setAlertas(procesadas);
+      } catch (error) {
+        console.error("Error al cargar alertas:", error);
+      } finally {
         setCargando(false);
       }
     };
 
     fetchAlertas();
-  }, [alertas, setAlertas]);
+  }, [location, setAlertas]); // <- Se ejecuta al cambiar la ruta
 
   useEffect(() => {
     if (!alertas) return;
@@ -67,13 +67,13 @@ export const PageAlertas = () => {
     }
 
     if (estudianteIdParam && estadoFiltro === "todos" && !busqueda) {
-  filtradas = filtradas.filter(
-    (a) =>
-      String(a.estudianteId) === estudianteIdParam &&
-      a.estado !== "completado" &&
-      a.estado !== "en_cita"
-  );
-}
+      filtradas = filtradas.filter(
+        (a) =>
+          String(a.estudianteId) === estudianteIdParam &&
+          a.estado !== "completado" &&
+          a.estado !== "en_cita"
+      );
+    }
 
     if (busqueda) {
       filtradas = filtradas.filter((a) =>
@@ -111,14 +111,16 @@ export const PageAlertas = () => {
           />
         </div>
 
-        <div>
-          <Button
-            text="Crear alerta"
-            color="bg-pink-500"
-            icon={Plus}
-            onClick={() => navigate("/consultas/nueva")}
-          />
-        </div>
+         {usuario?.rol !== 2 && (
+          <div>
+            <Button
+              text="Crear alerta"
+              color="bg-pink-500"
+              icon={Plus}
+              onClick={() => navigate("/consultas/nueva")}
+            />
+          </div>
+        )}
       </div>
 
       <div className="mt-2 text-sm text-gray-500">

@@ -5,7 +5,6 @@ const API_BASE_URL =
     ? "http://localhost:8085/api"
     : `http://${window.location.hostname}:8085/api`;
 
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -13,10 +12,23 @@ const api = axios.create({
   },
 });
 
-// Métodos genéricos
+// ✅ Interceptor para evitar agregar token al endpoint de login
+api.interceptors.request.use((config) => {
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+  // No añadir token si es login o generar
+  if (
+    !config.url.includes("/usuarios/login") &&
+    !config.url.includes("/usuarios/generar") &&
+    usuario?.token
+  ) {
+    config.headers.Authorization = `Bearer ${usuario.token}`;
+  }
+
+  return config;
+});
+
 export const get = (endpoint, config = {}) => api.get(endpoint, config);
-
 export const post = (endpoint, data, config = {}) => api.post(endpoint, data, config);
-
-export const put = (endpoint, data) => api.put(endpoint, data);
-export const del = (endpoint) => api.delete(endpoint);
+export const put = (endpoint, data, config = {}) => api.put(endpoint, data, config);
+export const del = (endpoint, config = {}) => api.delete(endpoint, config);

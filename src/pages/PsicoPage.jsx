@@ -125,7 +125,7 @@ export const PsicoPage = () => {
           <Button text="Siguiente" color="bg-gray-400" onClick={() => cambiarPagina(pagina + 1)} />
         </div>
 
-        {/* MODAL MASIVO */}
+   
         <ModalBase visible={modalMasivo} onClose={() => setModalMasivo(false)}>
           <h3 className="text-xl font-semibold mb-4">
             ¿Generar usuarios para todos los psicorientadores sin usuario?
@@ -150,7 +150,7 @@ export const PsicoPage = () => {
           </div>
         </ModalBase>
 
-        {/* MODAL INDIVIDUAL */}
+
         <ModalBase
           visible={modalIndividual.visible}
           onClose={() => setModalIndividual({ visible: false, cedula: "" })}
@@ -182,7 +182,7 @@ export const PsicoPage = () => {
           </div>
         </ModalBase>
 
-        {/* NOTIFICACIÓN */}
+  
         {noti.visible && (
           <Notificacion
             texto={noti.texto}

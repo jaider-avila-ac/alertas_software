@@ -4,7 +4,7 @@ import { Card } from "../components/Card";
 import { CalendarDays, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Esqueleto } from "../components/Esqueleto";
 import { UserContext } from "../context/UserContext";
-import { buscarConsultaPorEstudiante } from "../services/consultaService";
+import { obtenerResumenDashboard } from "../services/dashboardService";
 import { obtenerCitasPorEstudiante } from "../services/citaService";
 
 export const DashboardEstudiante = () => {
@@ -12,9 +12,9 @@ export const DashboardEstudiante = () => {
   const estudianteId = usuario?.id;
 
   const [resumen, setResumen] = useState({
-    alertas: 0,
-    citasPendientes: 0,
-    consultasCompletadas: 0,
+    alertasDelEstudiante: 0,
+    citasPendientesEstudiante: 0,
+    consultasCompletadasEstudiante: 0,
   });
 
   const [citasProgramadas, setCitasProgramadas] = useState([]);
@@ -23,23 +23,14 @@ export const DashboardEstudiante = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const resAlertas = await buscarConsultaPorEstudiante(estudianteId);
-        const consultas = resAlertas.data || [];
+        // Obtener datos resumen desde el nuevo endpoint
+        const resResumen = await obtenerResumenDashboard(usuario.rol, estudianteId);
+        setResumen(resResumen.data);
 
-        const completadas = consultas.filter(c => c.estado === "completado").length;
-
+        // Cargar citas programadas con estado "pendiente"
         const resCitas = await obtenerCitasPorEstudiante(estudianteId);
         const citas = resCitas.data || [];
-
-        const pendientes = citas.filter(c => c.estado === "pendiente").length;
         const programadas = citas.filter(c => c.estado === "pendiente");
-
-        setResumen({
-          alertas: consultas.length,
-          citasPendientes: pendientes,
-          consultasCompletadas: completadas,
-        });
-
         setCitasProgramadas(programadas);
       } catch (error) {
         console.error("Error al cargar el dashboard del estudiante:", error);
@@ -49,40 +40,39 @@ export const DashboardEstudiante = () => {
     };
 
     cargarDatos();
-  }, [estudianteId]);
+  }, [estudianteId, usuario.rol]);
 
   return (
     <Layout>
       <main className="space-y-6">
         <h2 className="text-2xl font-bold">Mi Panel</h2>
 
-       <div className="grid grid-cols-3 gap-4">
-  <div>
-    <Card
-      label="Mis Alertas"
-      total={resumen.alertas}
-      icon={AlertTriangle}
-      bgColor="bg-amber-400"
-    />
-  </div>
-  <div>
-    <Card
-      label="Citas Pendientes"
-      total={resumen.citasPendientes}
-      icon={CalendarDays}
-      bgColor="bg-blue-500"
-    />
-  </div>
-  <div>
-    <Card
-      label="Consultas Completadas"
-      total={resumen.consultasCompletadas}
-      icon={CheckCircle2}
-      bgColor="bg-green-500"
-    />
-  </div>
-</div>
-
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Card
+              label="Mis Alertas"
+              total={resumen.alertasDelEstudiante}
+              icon={AlertTriangle}
+              bgColor="bg-amber-400"
+            />
+          </div>
+          <div>
+            <Card
+              label="Citas Pendientes"
+              total={resumen.citasPendientesEstudiante}
+              icon={CalendarDays}
+              bgColor="bg-blue-500"
+            />
+          </div>
+          <div>
+            <Card
+              label="Consultas Completadas"
+              total={resumen.consultasCompletadasEstudiante}
+              icon={CheckCircle2}
+              bgColor="bg-green-500"
+            />
+          </div>
+        </div>
 
         <section>
           <h3 className="text-xl font-semibold mb-2">Citas Programadas</h3>

@@ -20,7 +20,7 @@ export const CitasPage = () => {
       if (usuario.rol === 1) {
   res = await obtenerCitasPorEstudiante(usuario.id);
 } else if (usuario.rol === 3) {
-  res = await obtenerCitas(); // <-- ADMIN: ya tienes esto listo y funciona
+  res = await obtenerCitas(); 
 } else {
   res = await obtenerCitasPorPsico(usuario.id);
 }
@@ -38,10 +38,11 @@ export const CitasPage = () => {
       console.error("Error al cancelar cita:", error);
     }
   };
-
-  useEffect(() => {
+useEffect(() => {
+  if (usuario?.id && usuario?.rol !== null) {
     cargarCitas();
-  }, []);
+  }
+}, [usuario]); 
 
   return (
     <Layout>

@@ -5,16 +5,15 @@ import { Card } from "../components/Card";
 import { Esqueleto } from "../components/Esqueleto";
 import { CalendarClock, FileText, Users } from "lucide-react";
 
-import { obtenerCitasPorPsico } from "../services/citaService"; // ✅ usa el seguro
-import { obtenerTodasConsultas } from "../services/consultaService";
 import { UserContext } from "../context/UserContext";
 import { ListadoEstudiantesPendientes } from "../components/psico/ListadoEstudiantesPendientes";
+import { obtenerResumenDashboard } from "../services/dashboardService";
 
 export const DashboardPsicorientador = () => {
   const [resumen, setResumen] = useState({
-    alertasPendientes: 0,
-    alertasCompletadas: 0,
-    citas: 0,
+    alertasPendientesPsico: 0,
+    alertasCompletadasPsico: 0,
+    citasAsignadasPsico: 0,
   });
   const [cargando, setCargando] = useState(true);
   const { usuario } = useContext(UserContext);
@@ -23,21 +22,8 @@ export const DashboardPsicorientador = () => {
   useEffect(() => {
     const cargarResumen = async () => {
       try {
-        const [resConsultas, resCitas] = await Promise.all([
-          obtenerTodasConsultas(),
-          obtenerCitasPorPsico(usuario.id), // ✅ solo citas del psico actual
-        ]);
-
-        const consultas = resConsultas.data || [];
-
-        const alertasPendientes = consultas.filter(c => c.estado === "pendiente").length;
-        const alertasCompletadas = consultas.filter(c => c.estado === "completado").length;
-
-        setResumen({
-          alertasPendientes,
-          alertasCompletadas,
-          citas: resCitas.data.length, // ✅ ya viene filtrado
-        });
+        const res = await obtenerResumenDashboard(usuario.rol, usuario.id);
+        setResumen(res.data);
       } catch (error) {
         console.error("Error cargando resumen del psicorientador:", error);
       } finally {
@@ -45,7 +31,7 @@ export const DashboardPsicorientador = () => {
       }
     };
     cargarResumen();
-  }, []);
+  }, [usuario]);
 
   return (
     <Layout>
@@ -64,7 +50,7 @@ export const DashboardPsicorientador = () => {
               <div className="col-span-4">
                 <Card
                   label="Alertas pendientes"
-                  total={resumen.alertasPendientes}
+                  total={resumen.alertasPendientesPsico}
                   icon={FileText}
                   bgColor="bg-pink-500"
                   onClick={() => navigate("/consultas?estado=pendiente")}
@@ -73,7 +59,7 @@ export const DashboardPsicorientador = () => {
               <div className="col-span-4">
                 <Card
                   label="Alertas completadas"
-                  total={resumen.alertasCompletadas}
+                  total={resumen.alertasCompletadasPsico}
                   icon={Users}
                   bgColor="bg-sky-500"
                   onClick={() => navigate("/consultas?estado=completado")}
@@ -82,7 +68,7 @@ export const DashboardPsicorientador = () => {
               <div className="col-span-4">
                 <Card
                   label="Citas asignadas"
-                  total={resumen.citas}
+                  total={resumen.citasAsignadasPsico}
                   icon={CalendarClock}
                   bgColor="bg-purple-500"
                   onClick={() => navigate("/citas")}

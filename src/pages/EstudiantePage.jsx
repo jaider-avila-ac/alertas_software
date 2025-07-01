@@ -1,6 +1,10 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { obtenerTodosEstudiantes } from "../services/estudianteService";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  obtenerTodosEstudiantes,
+  obtenerImagenEstudiante,
+} from "../services/estudianteService";
+import { obtenerEstudiantesConSeguimientos } from "../services/seguimientoService";
 
 import { Table } from "../components/Table";
 import { Button } from "../components/Button";
@@ -9,7 +13,9 @@ import { Layout } from "../layout/Layout";
 import { ModalBase } from "../components/ModalBase";
 import { Notificacion } from "../components/Notificacion";
 
-import { Pencil, Plus, UserPlus } from "lucide-react";
+import { Pencil, Plus, UserPlus, Eye } from "lucide-react";
+import FotoPorDefecto from "../assets/fotos_estudiante/CARD_PERFIL.jpg";
+
 import { UserContext } from "../context/UserContext";
 import {
   generarUsuarioEstudiante,
@@ -18,29 +24,65 @@ import {
 
 export const EstudiantePage = () => {
   const [estudiantes, setEstudiantes] = useState([]);
+  const [fotos, setFotos] = useState({});
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState(1);
   const porPagina = 15;
   const { usuario } = useContext(UserContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [modalMasivo, setModalMasivo] = useState(false);
   const [modalIndividual, setModalIndividual] = useState({ visible: false, cedula: "" });
   const [noti, setNoti] = useState({ visible: false, texto: "", color: "" });
 
   useEffect(() => {
-    if (usuario.rol === 3) {
-      cargarEstudiantes();
+    if (!usuario) return;
+
+    const esRutaSeguimientos = location.pathname === "/seguimientos";
+    const esRutaEstudiantes = location.pathname === "/estudiantes";
+
+    if (esRutaSeguimientos) {
+      cargarEstudiantesConSeguimientos();
+    } else if (esRutaEstudiantes) {
+      if (usuario.rol === 2) {
+        cargarEstudiantesConSeguimientos();
+      } else {
+        cargarEstudiantes();
+      }
     }
-  }, []);
+  }, [location]);
 
   const cargarEstudiantes = async () => {
     try {
       const res = await obtenerTodosEstudiantes();
       setEstudiantes(res.data);
+      precargarFotos(res.data);
     } catch (error) {
       console.error("Error al cargar estudiantes:", error);
     }
+  };
+
+  const cargarEstudiantesConSeguimientos = async () => {
+    try {
+      const res = await obtenerEstudiantesConSeguimientos();
+      setEstudiantes(res.data);
+      precargarFotos(res.data);
+    } catch (error) {
+      console.error("Error al cargar estudiantes con seguimiento:", error);
+    }
+  };
+
+  const precargarFotos = (lista) => {
+    lista.forEach(async (est) => {
+      try {
+        const resImg = await obtenerImagenEstudiante(est.id);
+        const url = URL.createObjectURL(resImg.data);
+        setFotos((prev) => ({ ...prev, [est.id]: url }));
+      } catch {
+        setFotos((prev) => ({ ...prev, [est.id]: FotoPorDefecto }));
+      }
+    });
   };
 
   const estudiantesFiltrados = estudiantes.filter((e) =>
@@ -56,37 +98,54 @@ export const EstudiantePage = () => {
   };
 
   const datosTabla = visibles.map((e) => ({
-    Documento: e.nroDoc,
+    Foto: (
+      <img
+        src={fotos[e.id] || FotoPorDefecto}
+        alt="Foto estudiante"
+        className="w-10 h-10 object-cover rounded-full"
+      />
+    ),
     Nombre: `${e.nombres} ${e.apellidos}`,
+    Documento: e.nroDoc,
     Correo: e.correo || "-",
     Acciones: (
       <div className="flex gap-2">
         <Button
-          icon={Pencil}
-          title="Editar"
-          color="bg-yellow-500"
-          onClick={() => navigate(`/formulario-estudiante/${e.id}`)}
+          icon={Eye}
+          title="Ver detalles"
+          color="bg-blue-600"
+          onClick={() => navigate(`/estudiantes/${e.id}`)}
         />
-        {!e.usuario && (
-          <Button
-            title="Generar usuario"
-            icon={UserPlus}
-            color="bg-green-700"
-            onClick={() =>
-              setModalIndividual({ visible: true, cedula: e.nroDoc })
-            }
-          />
+        {usuario.rol === 3 && (
+          <>
+            <Button
+              icon={Pencil}
+              title="Editar"
+              color="bg-yellow-500"
+              onClick={() => navigate(`/formulario-estudiante/${e.id}`)}
+            />
+            {!e.usuario && (
+              <Button
+                title="Generar usuario"
+                icon={UserPlus}
+                color="bg-green-700"
+                onClick={() =>
+                  setModalIndividual({ visible: true, cedula: e.nroDoc })
+                }
+              />
+            )}
+          </>
         )}
       </div>
     ),
   }));
 
-  if (usuario.rol !== 3) {
+  if (![0, 2, 3].includes(usuario.rol)) {
     return (
       <Layout>
         <main className="flex-1 p-4">
           <h2 className="text-xl font-semibold">Acceso restringido</h2>
-          <p>Solo los administradores pueden acceder a esta sección.</p>
+          <p>No tiene permisos para acceder a esta sección.</p>
         </main>
       </Layout>
     );
@@ -97,19 +156,21 @@ export const EstudiantePage = () => {
       <main className="flex-1 space-y-4 overflow-y-auto">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Estudiantes</h2>
-          <div className="flex gap-2">
-            <Button
-              text="Agregar estudiante"
-              icon={Plus}
-              color="bg-blue-600"
-              onClick={() => navigate("/formulario-estudiante")}
-            />
-            <Button
-              text="Generar usuarios"
-              color="bg-green-600"
-              onClick={() => setModalMasivo(true)}
-            />
-          </div>
+          {usuario.rol === 3 && (
+            <div className="flex gap-2">
+              <Button
+                text="Agregar estudiante"
+                icon={Plus}
+                color="bg-blue-600"
+                onClick={() => navigate("/formulario-estudiante")}
+              />
+              <Button
+                text="Generar usuarios"
+                color="bg-green-600"
+                onClick={() => setModalMasivo(true)}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -129,7 +190,7 @@ export const EstudiantePage = () => {
         </div>
 
         <Table
-          columns={["Documento", "Nombre", "Correo", "Acciones"]}
+          columns={["Foto", "Nombre", "Documento", "Correo", "Acciones"]}
           data={datosTabla}
         />
 
@@ -147,7 +208,6 @@ export const EstudiantePage = () => {
           />
         </div>
 
-        {/* MODAL MASIVO */}
         <ModalBase visible={modalMasivo} onClose={() => setModalMasivo(false)}>
           <h3 className="text-xl font-semibold mb-4">
             ¿Generar usuarios para todos los estudiantes sin usuario?
@@ -176,7 +236,6 @@ export const EstudiantePage = () => {
           </div>
         </ModalBase>
 
-        {/* MODAL INDIVIDUAL */}
         <ModalBase
           visible={modalIndividual.visible}
           onClose={() => setModalIndividual({ visible: false, cedula: "" })}
@@ -208,7 +267,6 @@ export const EstudiantePage = () => {
           </div>
         </ModalBase>
 
-        {/* NOTIFICACIÓN */}
         {noti.visible && (
           <Notificacion
             texto={noti.texto}

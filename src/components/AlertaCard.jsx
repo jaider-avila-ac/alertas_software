@@ -8,7 +8,18 @@ import { alertaVisual } from "../utils/alertaVisual";
 import { ModalBase } from "./ModalBase";
 
 export const AlertaCard = ({ alerta, onEliminar }) => {
-  const { id, nombreEstudiante, motivo, fecha, estado, nivel, icono, color } = alerta;
+  const {
+    id,
+    nombreEstudiante,
+    motivo,
+    fecha,
+    estado,
+    nivel,
+    icono,
+    color,
+    docenteId, 
+  } = alerta;
+
   const navigate = useNavigate();
   const { usuario } = useContext(UserContext);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -40,7 +51,9 @@ export const AlertaCard = ({ alerta, onEliminar }) => {
   };
 
   const puedeEditarOEliminar =
-    estado?.toLowerCase() === "pendiente" && usuario?.rol === 0;
+    estado?.toLowerCase() === "pendiente" &&
+    usuario?.rol === 0 &&
+    usuario?.personaId === docenteId; // 👈 CORRECTO: se usa personaId
 
   return (
     <>

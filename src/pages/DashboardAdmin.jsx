@@ -1,92 +1,87 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Layout } from "../layout/Layout";
 import { Card } from "../components/Card";
 import { Users, UserPlus, BarChart4 } from "lucide-react";
 
-import { totalEstudiantes } from "../services/estudianteService";
-import { totalDocentes } from "../services/docenteService";
-import { totalCitas } from "../services/citaService";
-import { obtenerEstadisticas } from "../services/estadisticaService";
-import { totalPsicos } from "../services/psicoService";
-
+import { UserContext } from "../context/UserContext";
+import { obtenerResumenDashboard } from "../services/dashboardService";
+import { Esqueleto } from "../components/Esqueleto";
 
 export const DashboardAdmin = () => {
-    const navigate = useNavigate();
-    const [resumen, setResumen] = useState({
-        estudiantes: 0,
-        docentes: 0,
-        citas: 0,
-        seguimientos: 0,
-    });
+  const navigate = useNavigate();
+  const { usuario } = useContext(UserContext); // para usar usuario.id si es necesario
+  const [cargando, setCargando] = useState(true);
 
-    useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                const [est, doc, cit, stats, psicos] = await Promise.all([
-                    totalEstudiantes(),
-                    totalDocentes(),
-                    totalCitas(),
-                    obtenerEstadisticas(),
-                    totalPsicos(),
-                ]);
+  const [resumen, setResumen] = useState({
+    totalEstudiantes: 0,
+    totalDocentes: 0,
+    totalPsicos: 0,
+    totalCitas: 0,
+    totalSeguimientos: 0,
+  });
 
-                setResumen({
-                    estudiantes: est.data,
-                    docentes: doc.data,
-                    citas: cit.data,
-                    seguimientos: stats.data.seguimientos || 0,
-                    psicos: psicos.data,
-                });
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const res = await obtenerResumenDashboard(3, usuario?.id || 0); // rol 3 = admin
+        setResumen(res.data);
+      } catch (error) {
+        console.error("Error al cargar resumen del administrador:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
 
-            } catch (error) {
-                console.error("Error al cargar datos del dashboard admin:", error);
-            }
-        };
+    cargarDatos();
+  }, [usuario]);
 
-        cargarDatos();
-    }, []);
+  return (
+    <Layout>
+      <main className="flex-1 space-y-6">
+        <h2 className="text-2xl font-bold">Panel del Administrador</h2>
 
-    return (
-        <Layout>
-            <main className="flex-1 space-y-6">
-                <h2 className="text-2xl font-bold">Panel del Administrador</h2>
+        <div className="grid grid-cols-12 gap-4">
+          {cargando ? (
+            <>
+              <Esqueleto className="h-24 col-span-4 w-full" />
+              <Esqueleto className="h-24 col-span-4 w-full" />
+              <Esqueleto className="h-24 col-span-4 w-full" />
+            </>
+          ) : (
+            <>
+              <div className="col-span-12 md:col-span-4">
+                <Card
+                  label="Estudiantes"
+                  total={resumen.totalEstudiantes}
+                  icon={Users}
+                  bgColor="bg-sky-500"
+                  onClick={() => navigate("/estudiantes")}
+                />
+              </div>
+              <div className="col-span-12 md:col-span-4">
+                <Card
+                  label="Docentes"
+                  total={resumen.totalDocentes}
+                  icon={UserPlus}
+                  bgColor="bg-indigo-500"
+                  onClick={() => navigate("/docentes")}
+                />
+              </div>
+              <div className="col-span-12 md:col-span-4">
+                <Card
+                  label="Psicorientadores"
+                  total={resumen.totalPsicos}
+                  icon={UserPlus}
+                  bgColor="bg-pink-500"
+                  onClick={() => navigate("/psicos")}
+                />
+              </div>
+            </>
+          )}
+        </div>
 
-                <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-12 md:col-span-4">
-                        <Card
-                            label="Estudiantes"
-                            total={resumen.estudiantes}
-                            icon={Users}
-                            bgColor="bg-sky-500"
-                            onClick={() => navigate("/estudiantes")}
-                        />
-                    </div>
-                    <div className="col-span-12 md:col-span-4">
-                        <Card
-                            label="Docentes"
-                            total={resumen.docentes}
-                            icon={UserPlus}
-                            bgColor="bg-indigo-500"
-                            onClick={() => navigate("/docentes")}
-                        />
-                    </div>
-
-
-                    <div className="col-span-12 md:col-span-4">
-                        <Card
-                            label="Psicorientadores"
-                            total={resumen.psicos}
-                            icon={UserPlus}
-                            bgColor="bg-pink-500"
-                            onClick={() => navigate("/psicos")}
-                        />
-                    </div>
-
-
-
-                </div>
-            </main>
-        </Layout>
-    );
+      </main>
+    </Layout>
+  );
 };

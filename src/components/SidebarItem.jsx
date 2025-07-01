@@ -8,15 +8,17 @@ export const SidebarItem = ({
   textColor = "text-white",
   iconColor = "text-white",
   active = false,
+  soloIcono = false,
+  textoHorizontal = false,
 }) => {
-  const baseStyle = "flex items-center gap-3 p-3 cursor-pointer transition";
+  const baseStyle = "flex items-center gap-2 p-2 sm:p-3 cursor-pointer transition";
   const activeStyle = active ? "bg-white text-pink-500" : `${bgColor} ${textColor}`;
-  const iconClass = active ? "text-pink-500" : iconColor;
+  const iconClass = `w-5 h-5 sm:w-6 sm:h-6 ${active ? "text-pink-500" : iconColor}`;
 
   return (
     <Link to={path} className={`${baseStyle} ${activeStyle}`}>
       <Icon className={iconClass} />
-      <span>{label}</span>
+      {!soloIcono && <span className={`text-sm ${textoHorizontal ? "" : "hidden sm:inline"}`}>{label}</span>}
     </Link>
   );
 };

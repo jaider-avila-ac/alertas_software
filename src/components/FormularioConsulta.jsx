@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   obtenerEstudiantePorId,
@@ -17,12 +17,14 @@ import { Buscador } from "../components/Buscador";
 import { Notificacion } from "../components/Notificacion";
 import { TextAreaElegante } from "../components/TextAreaElegante";
 import { EstudianteFoto } from "../components/EstudianteFoto";
-import { AlertTriangle, CheckCircle, QrCode, Fingerprint, } from "lucide-react";
-
+import { AlertTriangle, CheckCircle, QrCode, Fingerprint } from "lucide-react";
+import { UserContext } from "../context/UserContext";
 
 export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
   const navigate = useNavigate();
-  const [docenteId] = useState(1);
+  const { usuario } = useContext(UserContext);
+  const docenteId = usuario?.id;
+
   const [docente, setDocente] = useState(null);
   const [estudiante, setEstudiante] = useState(null);
   const [resultados, setResultados] = useState([]);
@@ -42,19 +44,13 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
           const res = await obtenerConsultaPorId(idAlerta);
           const consulta = res.data;
 
-          if (
-            !consulta.estado ||
-            consulta.estado.toLowerCase() !== "pendiente"
-          ) {
+          if (!consulta.estado || consulta.estado.toLowerCase() !== "pendiente") {
             setMensaje({
               texto: "No puedes editar esta alerta. Ya no está en estado pendiente.",
               color: "bg-yellow-500",
               icono: AlertTriangle,
             });
-
-            setTimeout(() => {
-              navigate("/consultas");
-            }, 2500);
+            setTimeout(() => navigate("/consultas"), 2500);
             return;
           }
 
@@ -78,16 +74,16 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
         }
       } else {
         if (idEstudiante) {
-          obtenerEstudiantePorId(idEstudiante).then((res) =>
-            setEstudiante(res.data)
-          );
+          obtenerEstudiantePorId(idEstudiante).then((res) => setEstudiante(res.data));
         }
-        obtenerDocentePorId(docenteId).then((res) => setDocente(res.data));
+        if (docenteId) {
+          obtenerDocentePorId(docenteId).then((res) => setDocente(res.data));
+        }
       }
     };
 
     cargarDatos();
-  }, [idEstudiante, idAlerta]);
+  }, [idEstudiante, idAlerta, docenteId]);
 
   const manejarBusqueda = async () => {
     if (!busqueda.trim()) return;
@@ -151,11 +147,8 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
       estado: "pendiente",
     };
 
-    console.log("JSON enviado al backend:", JSON.stringify(datosConsulta, null, 2));
-
     try {
       if (idAlerta) {
-        // 🟡 EDITAR
         await actualizarConsulta(idAlerta, datosConsulta);
         setMensaje({
           texto: "Consulta actualizada correctamente.",
@@ -163,7 +156,6 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
           icono: CheckCircle,
         });
       } else {
-        // 🟢 CREAR
         await crearConsulta(datosConsulta);
         setMensaje({
           texto: "Consulta registrada con éxito.",
@@ -172,7 +164,7 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
         });
       }
 
-      // Limpiar formulario
+      // Limpiar
       setMotivo("");
       setDescargos("");
       setAlerta("");
@@ -181,11 +173,9 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
       setPresente(false);
       setMetodoValidacion("NINGUNO");
 
-      // Redirigir
       setTimeout(() => {
         navigate("/consultas");
       }, 1500);
-
     } catch (error) {
       setMensaje({
         texto: "Error al guardar la alerta.",
