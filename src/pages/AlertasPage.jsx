@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { obtenerTodasConsultas } from "../services/consultaService";
-import { Layout } from "../layout/Layout";
+
 import { Table } from "../components/Table";
 import { Button } from "../components/Button";
 import { BarraFiltros } from "../components/BarraFiltros";
@@ -38,7 +38,7 @@ export const AlertasPage = () => {
   );
 
   return (
-    <Layout>
+    <div>
       <main className="space-y-6">
         <h2 className="text-2xl font-bold">Gestión de Alertas</h2>
 
@@ -106,6 +106,6 @@ export const AlertasPage = () => {
           )}
         </section>
       </main>
-    </Layout>
+    </div>
   );
 };

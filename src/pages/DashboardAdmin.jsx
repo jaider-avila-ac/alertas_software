@@ -37,7 +37,7 @@ export const DashboardAdmin = () => {
   }, [usuario]);
 
   return (
-    <Layout>
+ 
       <main className="flex-1 space-y-6">
         <h2 className="text-2xl font-bold">Panel del Administrador</h2>
 
@@ -82,6 +82,6 @@ export const DashboardAdmin = () => {
         </div>
 
       </main>
-    </Layout>
+
   );
 };

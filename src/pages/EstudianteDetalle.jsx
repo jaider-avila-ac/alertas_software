@@ -12,7 +12,7 @@ import { Button } from "../components/Button";
 import { Table } from "../components/Table";
 import { DatoCampo } from "../components/DatoCampo";
 import { Plus } from "lucide-react";
-import { Layout } from "../layout/Layout";
+
 
 export const EstudianteDetalle = () => {
     const { id } = useParams();
@@ -79,7 +79,7 @@ export const EstudianteDetalle = () => {
 
     return (
 
-        <Layout >
+  
 
             <main className="flex-1 overflow-y-auto space-y-6">
                 <div className="flex justify-between items-center">
@@ -178,7 +178,7 @@ export const EstudianteDetalle = () => {
                     )}
                 </section>
             </main>
-        </Layout>
+  
 
 
 

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { totalEstudiantes } from "../services/estudianteService";
 import { totalConsultas, obtenerTodasConsultas } from "../services/consultaService";
 import { alertaVisual } from "../utils/alertaVisual";
-import { Layout } from "../layout/Layout";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { AlertaCard } from "../components/AlertaCard";
@@ -69,7 +68,7 @@ export const DashboardDocente = () => {
   }, [docenteId]);
 
   return (
-    <Layout>
+ 
       <main className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Panel Docente</h2>
@@ -142,6 +141,6 @@ export const DashboardDocente = () => {
           </div>
         </div>
       </main>
-    </Layout>
+
   );
 };

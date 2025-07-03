@@ -1,8 +1,9 @@
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
 import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 
-export const Layout = ({ children }) => {
+export const Layout = () => {
   const [ancho, setAncho] = useState(window.innerWidth);
   const esEscritorio = ancho >= 1024;
 
@@ -22,9 +23,13 @@ export const Layout = ({ children }) => {
           <Header />
         </div>
 
-        {/* Si no es escritorio, agregar margen arriba para evitar que el aside lo tape */}
-        <main className={`flex-1 overflow-y-auto p-4 space-y-4 ${!esEscritorio ? "mt-16" : ""}`}>
-          {children}
+        {/* Contenido central */}
+        <main
+          className={`flex-1 overflow-y-auto p-4 space-y-4 ${
+            !esEscritorio ? "mt-16" : ""
+          }`}
+        >
+          <Outlet />
         </main>
       </div>
     </div>

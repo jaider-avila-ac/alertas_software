@@ -59,7 +59,7 @@ export const SeguimientosPorConsulta = () => {
   }, [id]);
 
   return (
-    <Layout>
+ 
       <main className="flex-1 p-6 space-y-6 overflow-y-auto">
         <h2 className="text-2xl font-bold">
           Seguimiento de alerta #{id} – {decodeURIComponent(nombreEstudiante)}
@@ -91,6 +91,6 @@ export const SeguimientosPorConsulta = () => {
           </>
         )}
       </main>
-    </Layout>
+ 
   );
 };

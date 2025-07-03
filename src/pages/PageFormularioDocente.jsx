@@ -63,7 +63,7 @@ export const PageFormularioDocente = () => {
 
 
   return (
-    <Layout>
+    <main>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">
           {editar ? "Editar Docente" : "Nuevo Docente"}
@@ -140,6 +140,6 @@ export const PageFormularioDocente = () => {
           <Button text="Cancelar" color="bg-gray-600" onClick={() => navigate("/docentes")} />
         </div>
       </div>
-    </Layout>
+    </main>
   );
 };

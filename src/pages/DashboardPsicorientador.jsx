@@ -34,7 +34,7 @@ export const DashboardPsicorientador = () => {
   }, [usuario]);
 
   return (
-    <Layout>
+
       <main className="space-y-6 p-6">
         <h2 className="text-2xl font-bold">Panel Psicorientador</h2>
 
@@ -82,6 +82,6 @@ export const DashboardPsicorientador = () => {
           <ListadoEstudiantesPendientes />
         </section>
       </main>
-    </Layout>
+ 
   );
 };

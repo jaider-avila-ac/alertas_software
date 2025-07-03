@@ -6,7 +6,6 @@ import { AlertaCard } from "../components/AlertaCard";
 import { BarraFiltros } from "../components/BarraFiltros";
 import { Button } from "../components/Button";
 import { Plus } from "lucide-react";
-import { Layout } from "../layout/Layout";
 import { Esqueleto } from "../components/Esqueleto";
 import { AlertasContext } from "../context/AlertasContext";
 import { UserContext } from "../context/UserContext";
@@ -15,19 +14,20 @@ export const PageAlertas = () => {
   const { usuario } = useContext(UserContext);
   const { alertas, setAlertas } = useContext(AlertasContext);
   const [alertasFiltradas, setAlertasFiltradas] = useState([]);
+  const [totalFiltradas, setTotalFiltradas] = useState(0);
   const [busqueda, setBusqueda] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("todos");
   const [cargando, setCargando] = useState(true);
 
   const [searchParams] = useSearchParams();
-  const location = useLocation(); // <- Detecta cambios de ruta
+  const location = useLocation(); 
   const estudianteIdParam = searchParams.get("estudianteId");
   const navigate = useNavigate();
 
+  // Cargar alertas desde el backend
   useEffect(() => {
     const fetchAlertas = async () => {
       setCargando(true);
-
       try {
         const datos = await procesarConsultas();
         const procesadas = datos.map((c) => {
@@ -55,10 +55,15 @@ export const PageAlertas = () => {
     };
 
     fetchAlertas();
-  }, [location, setAlertas]); // <- Se ejecuta al cambiar la ruta
+  }, [location, setAlertas]);
 
+  // Filtrar alertas según búsqueda, estado, o estudiante
   useEffect(() => {
-    if (!alertas) return;
+    if (!alertas || alertas.length === 0) {
+      setAlertasFiltradas([]);
+      setTotalFiltradas(0);
+      return;
+    }
 
     let filtradas = [...alertas];
 
@@ -82,6 +87,7 @@ export const PageAlertas = () => {
     }
 
     setAlertasFiltradas(filtradas);
+    setTotalFiltradas(filtradas.length);
   }, [alertas, estudianteIdParam, busqueda, estadoFiltro]);
 
   const handleBuscar = (texto) => {
@@ -96,7 +102,7 @@ export const PageAlertas = () => {
   };
 
   return (
-    <Layout>
+    <main>
       <h2 className="text-2xl font-bold">Todas las alertas</h2>
 
       <div className="flex justify-between items-start gap-4 flex-wrap w-full">
@@ -111,7 +117,7 @@ export const PageAlertas = () => {
           />
         </div>
 
-         {usuario?.rol !== 2 && (
+        {usuario?.rol !== 2 && (
           <div>
             <Button
               text="Crear alerta"
@@ -124,7 +130,7 @@ export const PageAlertas = () => {
       </div>
 
       <div className="mt-2 text-sm text-gray-500">
-        Mostrando {alertasFiltradas.length} resultado(s)
+        {cargando ? "Cargando..." : `Mostrando ${totalFiltradas} resultado(s)`}
       </div>
 
       <div className="space-y-2 mt-4">
@@ -136,6 +142,6 @@ export const PageAlertas = () => {
               <AlertaCard key={alerta.id} alerta={alerta} />
             ))}
       </div>
-    </Layout>
+    </main>
   );
 };

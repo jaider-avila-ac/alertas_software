@@ -82,7 +82,7 @@ export const PerfilPage = () => {
   }, [usuario]);
 
   return (
-    <Layout>
+    <main>
       <div className="flex justify-end mb-4">
         <Button
           text="Cerrar Sesión"
@@ -114,6 +114,6 @@ export const PerfilPage = () => {
           onActualizar={() => console.log("Actualizar contraseña")}
         />
       </div>
-    </Layout>
+    </main>
   );
 };

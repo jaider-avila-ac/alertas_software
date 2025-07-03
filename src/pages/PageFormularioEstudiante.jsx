@@ -223,7 +223,7 @@ const [mensajeFamiliar, setMensajeFamiliar] = useState(null);
     };
 
     return (
-        <Layout>
+        <main>
             <div className="space-y-6">
                 <h1 className="text-2xl font-bold">{editar ? "Editar Estudiante" : "Nuevo Estudiante"}</h1>
 
@@ -319,6 +319,6 @@ const [mensajeFamiliar, setMensajeFamiliar] = useState(null);
                     <Button text="Cancelar" color="bg-gray-600" onClick={() => navigate("/estudiantes")} />
                 </div>
             </div>
-        </Layout>
+        </main>
     );
 };

@@ -11,7 +11,9 @@ export const AlertaNueva = () => {
   const idEstudiante = !idAlerta ? id || searchParams.get("estudianteId") : null;
 
   return (
-    <Layout>
+
+    <div>
+
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">
           {idAlerta ? "Editar Alerta" : "Nueva Alerta"}
@@ -25,6 +27,7 @@ export const AlertaNueva = () => {
       </div>
 
       <FormularioConsulta idEstudiante={idEstudiante} idAlerta={idAlerta} />
-    </Layout>
+
+    </div>
   );
 };

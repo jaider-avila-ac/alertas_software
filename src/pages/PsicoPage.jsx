@@ -76,17 +76,17 @@ export const PsicoPage = () => {
 
   if (usuario.rol !== 3) {
     return (
-      <Layout>
+  
         <main className="flex-1 p-4">
           <h2 className="text-xl font-semibold">Acceso restringido</h2>
           <p>Solo los administradores pueden acceder a esta sección.</p>
         </main>
-      </Layout>
+  
     );
   }
 
   return (
-    <Layout>
+
       <main className="flex-1 space-y-4 overflow-y-auto">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Psicorientadores</h2>
@@ -191,6 +191,6 @@ export const PsicoPage = () => {
           />
         )}
       </main>
-    </Layout>
+ 
   );
 };

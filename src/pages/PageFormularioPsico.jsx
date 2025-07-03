@@ -58,7 +58,7 @@ export const PageFormularioPsico = () => {
   };
 
   return (
-    <Layout>
+    <main>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">
           {editar ? "Editar Psicorientador" : "Nuevo Psicorientador"}
@@ -135,6 +135,6 @@ export const PageFormularioPsico = () => {
           <Button text="Cancelar" color="bg-gray-600" onClick={() => navigate("/psicos")} />
         </div>
       </div>
-    </Layout>
+    </main>
   );
 };

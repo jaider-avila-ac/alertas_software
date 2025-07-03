@@ -43,7 +43,7 @@ export const DashboardEstudiante = () => {
   }, [estudianteId, usuario.rol]);
 
   return (
-    <Layout>
+
       <main className="space-y-6">
         <h2 className="text-2xl font-bold">Mi Panel</h2>
 
@@ -99,6 +99,6 @@ export const DashboardEstudiante = () => {
           )}
         </section>
       </main>
-    </Layout>
+ 
   );
 };

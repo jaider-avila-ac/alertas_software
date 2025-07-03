@@ -18,7 +18,7 @@ export const ModalesEstudiantes = ({
 
   return (
     <>
-      {/* Modal generación masiva */}
+
       <ModalBase visible={modalMasivo} onClose={() => setModalMasivo(false)}>
         <h3 className="text-xl font-semibold mb-4">
           ¿Generar usuarios para todos los estudiantes sin usuario?
@@ -55,7 +55,7 @@ export const ModalesEstudiantes = ({
         </div>
       </ModalBase>
 
-      {/* Modal generación individual */}
+ 
       <ModalBase visible={modalIndividual.visible} onClose={cerrarIndividual}>
         <h3 className="text-xl font-semibold mb-4">
           ¿Generar usuario para cédula {modalIndividual.cedula}?

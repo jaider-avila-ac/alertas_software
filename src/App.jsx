@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Layout } from "./layout/Layout";
+import { PageLogin } from "./pages/PageLogin";
 
-// Vistas protegidas
+
 import { Dashboard } from "./pages/Dashboard";
 import { EstudiantePage } from "./pages/EstudiantePage";
 import { EstudianteDetalle } from "./pages/EstudianteDetalle";
@@ -19,9 +21,6 @@ import { PageFormularioDocente } from "./pages/PageFormularioDocente";
 import { PsicoPage } from "./pages/PsicoPage";
 import { PageFormularioPsico } from "./pages/PageFormularioPsico";
 
-
-import { PageLogin } from "./pages/PageLogin";
-
 const estaAutenticado = () => {
   return !!localStorage.getItem("usuario");
 };
@@ -30,44 +29,49 @@ function App() {
   return (
     <Router>
       <Routes>
-
+  
         <Route path="/login" element={<PageLogin />} />
 
 
-        <Route path="/" element={estaAutenticado() ? <Dashboard /> : <PageLogin />} />
+        {estaAutenticado() && (
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="estudiantes" element={<EstudiantePage />} />
+            <Route path="estudiantes/:id" element={<EstudianteDetalle />} />
 
-     
-        <Route path="/estudiantes" element={estaAutenticado() ? <EstudiantePage /> : <PageLogin />} />
-        <Route path="/estudiantes/:id" element={estaAutenticado() ? <EstudianteDetalle /> : <PageLogin />} />
-        <Route path="/consultas" element={estaAutenticado() ? <PageAlertas /> : <PageLogin />} />
-        <Route path="/consultas/nueva" element={estaAutenticado() ? <AlertaNueva /> : <PageLogin />} />
-        <Route path="/consultas/nueva/:id" element={estaAutenticado() ? <AlertaNueva /> : <PageLogin />} />
-        <Route path="/editar-alerta/:id" element={estaAutenticado() ? <AlertaNueva /> : <PageLogin />} />
+            <Route path="consultas" element={<PageAlertas />} />
+            <Route path="consultas/nueva" element={<AlertaNueva />} />
+            <Route path="consultas/nueva/:id" element={<AlertaNueva />} />
+            <Route path="editar-alerta/:id" element={<AlertaNueva />} />
 
+            <Route path="seguimientos" element={<EstudiantePage />} />
+            <Route path="seguimientos/:id" element={<SeguimientosPorConsulta />} />
 
-        <Route path="/seguimientos" element={estaAutenticado() ? <EstudiantePage /> : <PageLogin />} />
-        <Route path="/seguimientos/:id" element={estaAutenticado() ? <SeguimientosPorConsulta /> : <PageLogin />} />
-        <Route path="/citas" element={estaAutenticado() ? <CitasPage /> : <PageLogin />} />
-        <Route path="/citas/activa/:id" element={estaAutenticado() ? <CitaActiva /> : <PageLogin />} />
+            <Route path="citas" element={<CitasPage />} />
+            <Route path="citas/activa/:id" element={<CitaActiva />} />
 
+            <Route path="alertas" element={<AlertasPage />} />
+            <Route path="mis-alertas" element={<AlertasEstudiante />} />
+            <Route path="perfil" element={<PerfilPage />} />
+            <Route path="estadisticas" element={<EstadisticasPage />} />
 
-        <Route path="/alertas" element={estaAutenticado() ? <AlertasPage /> : <PageLogin />} />
-        <Route path="/mis-alertas" element={estaAutenticado() ? <AlertasEstudiante /> : <PageLogin />} />
-        <Route path="/perfil" element={estaAutenticado() ? <PerfilPage /> : <PageLogin />} />
-        <Route path="/estadisticas" element={estaAutenticado() ? <EstadisticasPage /> : <PageLogin />} />
+            <Route path="formulario-estudiante" element={<PageFormularioEstudiante />} />
+            <Route path="formulario-estudiante/:id" element={<PageFormularioEstudiante />} />
 
+            <Route path="docentes" element={<DocentePage />} />
+            <Route path="formulario-docente" element={<PageFormularioDocente />} />
+            <Route path="formulario-docente/:id" element={<PageFormularioDocente />} />
 
-        <Route path="/formulario-estudiante" element={estaAutenticado() ? <PageFormularioEstudiante /> : <PageLogin />} />
-        <Route path="/formulario-estudiante/:id" element={estaAutenticado() ? <PageFormularioEstudiante /> : <PageLogin />} />
+            <Route path="psicos" element={<PsicoPage />} />
+            <Route path="formulario-psico" element={<PageFormularioPsico />} />
+            <Route path="formulario-psico/:id" element={<PageFormularioPsico />} />
+          </Route>
+        )}
 
-        <Route path="/docentes" element={estaAutenticado() ? <DocentePage /> : <PageLogin />} />
-        <Route path="/formulario-docente" element={estaAutenticado() ? <PageFormularioDocente /> : <PageLogin />} />
-        <Route path="/formulario-docente/:id" element={estaAutenticado() ? <PageFormularioDocente /> : <PageLogin />} />
-
- 
-        <Route path="/psicos" element={estaAutenticado() ? <PsicoPage /> : <PageLogin />} />
-        <Route path="/formulario-psico" element={estaAutenticado() ? <PageFormularioPsico /> : <PageLogin />} />
-        <Route path="/formulario-psico/:id" element={estaAutenticado() ? <PageFormularioPsico /> : <PageLogin />} />
+        {/* si no esta aurenticado ir al login */}
+        {!estaAutenticado() && (
+          <Route path="*" element={<PageLogin />} />
+        )}
       </Routes>
     </Router>
   );

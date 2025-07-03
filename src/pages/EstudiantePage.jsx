@@ -1,7 +1,6 @@
 import { useState, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import { Layout } from "../layout/Layout";
 import { Buscador } from "../components/Buscador";
 import { Button } from "../components/Button";
 import { Notificacion } from "../components/Notificacion";
@@ -37,17 +36,17 @@ export const EstudiantePage = () => {
 
   if (![0, 2, 3].includes(usuario?.rol)) {
     return (
-      <Layout>
+
         <main className="flex-1 p-4">
           <h2 className="text-xl font-semibold">Acceso restringido</h2>
           <p>No tiene permisos para acceder a esta sección.</p>
         </main>
-      </Layout>
+
     );
   }
 
   return (
-    <Layout>
+
       <main className="flex-1 space-y-4 overflow-y-auto">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold">Estudiantes</h2>
@@ -110,6 +109,6 @@ export const EstudiantePage = () => {
           />
         )}
       </main>
-    </Layout>
+
   );
 };

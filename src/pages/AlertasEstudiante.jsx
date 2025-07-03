@@ -1,4 +1,4 @@
-  import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { UserContext } from "../context/UserContext";
@@ -7,7 +7,7 @@ import { obtenerEstudiantePorId } from "../services/estudianteService";
 
 import { Button } from "../components/Button";
 import { Table } from "../components/Table";
-import { Layout } from "../layout/Layout";
+
 
 export const AlertasEstudiante = () => {
   const { usuario } = useContext(UserContext);
@@ -25,12 +25,12 @@ export const AlertasEstudiante = () => {
 
         const resAlertas = await buscarConsultaPorEstudiante(usuario.id);
         const alertasFormateadas = resAlertas.data.map((a) => ({
-  ID: a.id,
-  Motivo: a.motivo,
-  Fecha: new Date(a.fecha).toLocaleDateString(),
-  Estado: a.estado || "Sin estado",
-  Nivel: a.nivel || "Sin nivel", // <- corregido aquí
-}));
+          ID: a.id,
+          Motivo: a.motivo,
+          Fecha: new Date(a.fecha).toLocaleDateString(),
+          Estado: a.estado || "Sin estado",
+          Nivel: a.nivel || "Sin nivel",
+        }));
 
         setAlertas(alertasFormateadas);
       } catch (error) {
@@ -46,7 +46,7 @@ export const AlertasEstudiante = () => {
   if (cargando) return <div className="p-4">Cargando...</div>;
 
   return (
-    <Layout>
+    <div>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold mb-4">
           Mis Alertas (Consultas)
@@ -83,6 +83,6 @@ export const AlertasEstudiante = () => {
           )}
         </section>
       </div>
-    </Layout>
+    </div>
   );
 };
