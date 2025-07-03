@@ -1,19 +1,18 @@
 import { useState, useContext } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
-import logo from "../assets/alertas-logo.png";
+import logo from "../assets/logo-alerta-color.svg";
 import { InputElegante } from "../components/InputElegante";
 import { Button } from "../components/Button";
 import { Notificacion } from "../components/Notificacion";
 import { loginUsuario } from "../services/usuarioService";
-import { UserContext } from "../context/UserContext"; // 👈 Asegúrate de que esté bien importado
+import { UserContext } from "../context/UserContext"; 
 
 export const PageLogin = () => {
   const [cedula, setCedula] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [mostrarClave, setMostrarClave] = useState(false);
   const [error, setError] = useState(null);
-  const { setUsuario } = useContext(UserContext); // 👈 Usamos el contexto
-
+  const { setUsuario } = useContext(UserContext); 
   const manejarLogin = async () => {
     if (!cedula.trim() || !contrasena.trim()) {
       setError("Por favor, ingrese cédula y contraseña.");
@@ -25,18 +24,16 @@ export const PageLogin = () => {
       password: contrasena.trim(),
     };
 
-    console.log("📤 Datos enviados:", credenciales);
+
 
     try {
       const response = await loginUsuario(credenciales);
       const data = response.data;
 
-      console.log("✅ Login exitoso:", data);
-
       localStorage.setItem("token", data.token);
       localStorage.setItem("usuario", JSON.stringify(data));
 
-      // ✅ Guardamos en el contexto
+
       setUsuario({
         id: data.id,
         nombre: data.nombres,
@@ -45,7 +42,7 @@ export const PageLogin = () => {
 
       window.location.href = "/";
     } catch (err) {
-      console.warn("❌ Error al iniciar sesión:", err?.response?.data || err.message);
+    
       localStorage.removeItem("token");
       localStorage.removeItem("usuario");
       setError("Cédula o contraseña incorrecta.");
