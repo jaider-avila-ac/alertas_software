@@ -14,15 +14,24 @@ export const PageAlertas = () => {
   const { usuario } = useContext(UserContext);
   const { alertas, setAlertas } = useContext(AlertasContext);
   const [alertasFiltradas, setAlertasFiltradas] = useState([]);
-  const [totalFiltradas, setTotalFiltradas] = useState(0);
   const [busqueda, setBusqueda] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("todos");
   const [cargando, setCargando] = useState(true);
 
   const [searchParams] = useSearchParams();
-  const location = useLocation(); 
+  const location = useLocation();
   const estudianteIdParam = searchParams.get("estudianteId");
+  const estadoParam = searchParams.get("estado");
   const navigate = useNavigate();
+
+  // Aplicar filtro de estado SOLO al cargar desde la URL
+  useEffect(() => {
+    if (estadoParam) {
+      setEstadoFiltro(estadoParam);
+      // Reemplazar la URL para que quede limpia
+      navigate("/consultas", { replace: true });
+    }
+  }, [estadoParam, navigate]);
 
   // Cargar alertas desde el backend
   useEffect(() => {
@@ -55,13 +64,12 @@ export const PageAlertas = () => {
     };
 
     fetchAlertas();
-  }, [location, setAlertas]);
+  }, [location.pathname]);
 
-  // Filtrar alertas según búsqueda, estado, o estudiante
+  // Filtrar alertas
   useEffect(() => {
     if (!alertas || alertas.length === 0) {
       setAlertasFiltradas([]);
-      setTotalFiltradas(0);
       return;
     }
 
@@ -87,7 +95,6 @@ export const PageAlertas = () => {
     }
 
     setAlertasFiltradas(filtradas);
-    setTotalFiltradas(filtradas.length);
   }, [alertas, estudianteIdParam, busqueda, estadoFiltro]);
 
   const handleBuscar = (texto) => {
@@ -96,10 +103,9 @@ export const PageAlertas = () => {
 
   const handleFiltrarEstado = (estado) => {
     setEstadoFiltro(estado);
-    if (estado === "todos" && estudianteIdParam) {
-      navigate("/consultas");
-    }
   };
+
+  const totalFiltradas = alertasFiltradas.length;
 
   return (
     <main>

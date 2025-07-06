@@ -16,4 +16,4 @@ export const contarEstudiantesConConsultas = () => get(`${base}/estudiantes-con-
 export const totalAlertasSinSeguimiento = () => get(`${base}/sin-seguimiento/total`);
 
 export const cambiarEstadoConsulta = (id, estado) =>
-  put(`${base}/${id}/estado`, { estado });
+put(`${base}/${id}/estado`, { estado });

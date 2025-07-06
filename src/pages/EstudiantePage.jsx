@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { Buscador } from "../components/Buscador";
@@ -30,85 +30,88 @@ export const EstudiantePage = () => {
 
   const { estudiantes, fotos, cargando, recargar } = useEstudiantes({ soloConSeguimiento });
 
+  // ✅ Recargar cuando el usuario cambie o la ruta cambie
+  useEffect(() => {
+    if (usuario) {
+      recargar();
+    }
+  }, [usuario, location.pathname]);
+
   const estudiantesFiltrados = estudiantes.filter((e) =>
     `${e.nombres} ${e.apellidos} ${e.nroDoc}`.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   if (![0, 2, 3].includes(usuario?.rol)) {
     return (
-
-        <main className="flex-1 p-4">
-          <h2 className="text-xl font-semibold">Acceso restringido</h2>
-          <p>No tiene permisos para acceder a esta sección.</p>
-        </main>
-
+      <main className="flex-1 p-4">
+        <h2 className="text-xl font-semibold">Acceso restringido</h2>
+        <p>No tiene permisos para acceder a esta sección.</p>
+      </main>
     );
   }
 
   return (
-
-      <main className="flex-1 space-y-4 overflow-y-auto">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Estudiantes</h2>
-          {usuario.rol === 3 && (
-            <div className="flex gap-2">
-              <Button
-                text="Agregar estudiante"
-                icon={Plus}
-                color="bg-blue-600"
-                onClick={() => navigate("/formulario-estudiante")}
-              />
-              <Button
-                text="Generar usuarios"
-                color="bg-green-600"
-                onClick={() => setModalMasivo(true)}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Buscador
-            valor={busqueda}
-            onChange={(valor) => {
-              setBusqueda(valor);
-              setPagina(1);
-            }}
-            placeholder="Buscar por nombre o documento"
-          />
-          <Button
-            text="Buscar"
-            color="bg-sky-500"
-            onClick={() => setPagina(1)}
-          />
-        </div>
-
-        <TablaEstudiantes
-          estudiantes={estudiantesFiltrados}
-          fotos={fotos}
-          pagina={pagina}
-          porPagina={15}
-          setPagina={setPagina}
-          setModalIndividual={setModalIndividual}
-        />
-
-        <ModalesEstudiantes
-          modalMasivo={modalMasivo}
-          setModalMasivo={setModalMasivo}
-          modalIndividual={modalIndividual}
-          setModalIndividual={setModalIndividual}
-          recargar={recargar}
-          setNoti={setNoti}
-        />
-
-        {noti.visible && (
-          <Notificacion
-            texto={noti.texto}
-            color={noti.color}
-            onClose={() => setNoti({ ...noti, visible: false })}
-          />
+    <main className="flex-1 space-y-4 overflow-y-auto">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Estudiantes</h2>
+        {usuario.rol === 3 && (
+          <div className="flex gap-2">
+            <Button
+              text="Agregar estudiante"
+              icon={Plus}
+              color="bg-blue-600"
+              onClick={() => navigate("/formulario-estudiante")}
+            />
+            <Button
+              text="Generar usuarios"
+              color="bg-green-600"
+              onClick={() => setModalMasivo(true)}
+            />
+          </div>
         )}
-      </main>
+      </div>
 
+      <div className="flex items-center gap-4">
+        <Buscador
+          valor={busqueda}
+          onChange={(valor) => {
+            setBusqueda(valor);
+            setPagina(1);
+          }}
+          placeholder="Buscar por nombre o documento"
+        />
+        <Button
+          text="Buscar"
+          color="bg-sky-500"
+          onClick={() => setPagina(1)}
+        />
+      </div>
+
+      <TablaEstudiantes
+        estudiantes={estudiantesFiltrados}
+        fotos={fotos}
+        pagina={pagina}
+        porPagina={15}
+        setPagina={setPagina}
+        setModalIndividual={setModalIndividual}
+      />
+
+      <ModalesEstudiantes
+        modalMasivo={modalMasivo}
+        setModalMasivo={setModalMasivo}
+        modalIndividual={modalIndividual}
+        setModalIndividual={setModalIndividual}
+        recargar={recargar}
+        setNoti={setNoti}
+      />
+
+      {noti.visible && (
+        <Notificacion
+          texto={noti.texto}
+          color={noti.color}
+          onClose={() => setNoti({ ...noti, visible: false })}
+        />
+      )}
+    </main>
   );
 };

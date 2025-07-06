@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { Button } from "../Button";
-import { Layout } from "../../layout/Layout";
+import { ResumenGeneral } from "../psico/ResumenGeneral";
 import {
   obtenerCitaPorId,
   cambiarEstadoCita,
@@ -9,6 +9,8 @@ import {
 import {
   crearSeguimiento,
   obtenerSeguimientosPorConsulta,
+  generarResumenIA,
+  guardarResumenGeneral,
 } from "../../services/seguimientoService";
 import {
   obtenerObservacionesPorSeguimiento,
@@ -33,6 +35,9 @@ export const CitaActiva = () => {
   const [observaciones, setObservaciones] = useState({});
   const [textoNuevo, setTextoNuevo] = useState({});
   const [estadoConsulta, setEstadoConsulta] = useState({});
+  const [resumenGeneral, setResumenGeneral] = useState("");
+  const [idSeguimientoGeneral, setIdSeguimientoGeneral] = useState(null);
+  const [mostrarCampoResumen, setMostrarCampoResumen] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [notificacion, setNotificacion] = useState(null);
   const [citaFinalizada, setCitaFinalizada] = useState(false);
@@ -70,15 +75,12 @@ export const CitaActiva = () => {
               psicorientador: { id: usuario.id },
               fechaInicio: new Date().toISOString().slice(0, 10),
             });
-
             seguimiento = nuevo.data;
-            if (!seguimiento?.id) {
-              setNotificacion({
-                mensaje: `Error al crear seguimiento para consulta #${consulta.id}`,
-                tipo: "error",
-              });
-              continue;
-            }
+          }
+
+          if (!idSeguimientoGeneral) {
+            setResumenGeneral(seguimiento.resumenGeneral || "");
+            setIdSeguimientoGeneral(seguimiento.id);
           }
 
           seguimientosMap[consulta.id] = seguimiento.id;
@@ -117,10 +119,7 @@ export const CitaActiva = () => {
     const seguimientoId = seguimientos[consultaId];
     if (!texto?.trim() || !seguimientoId) return;
 
-    await crearObservacion({
-      texto,
-      seguimiento: { id: seguimientoId },
-    });
+    await crearObservacion({ texto, seguimiento: { id: seguimientoId } });
 
     const resObs = await obtenerObservacionesPorSeguimiento(seguimientoId);
     setObservaciones((prev) => ({ ...prev, [consultaId]: resObs.data || [] }));
@@ -138,7 +137,7 @@ export const CitaActiva = () => {
 
       if (!estado || (!tieneObservaciones && !tieneTextoNuevo)) {
         setNotificacion({
-          mensaje: "Cada consulta debe tener observación escrita y estado seleccionado.",
+          mensaje: "Cada consulta debe tener observación y estado.",
           tipo: "error",
         });
         return;
@@ -148,91 +147,71 @@ export const CitaActiva = () => {
         await guardarObservacion(idConsulta);
       }
 
-      try {
-        await cambiarEstadoConsulta(idConsulta, estado);
-      } catch (error) {
-        console.error("Error actualizando estado consulta", error);
-      }
+      await cambiarEstadoConsulta(idConsulta, estado);
     }
 
+    await cambiarEstadoCita(id, "usada");
+    setMostrarCampoResumen(true);
+  };
+
+  const generarResumen = async () => {
     try {
-      await cambiarEstadoCita(id, "usada");
-      navigate("/citas");
+      const res = await generarResumenIA(idSeguimientoGeneral);
+      return res.data; // Se delega la notificación al componente ResumenGeneral
     } catch (error) {
-      console.error("Error cambiando estado cita:", error);
-      setNotificacion({
-        mensaje: "No se pudo finalizar la cita correctamente.",
-        tipo: "error",
-      });
+      console.error("Error al generar resumen:", error);
+      return "ERROR_INTERNO";
     }
   };
 
-  const volver = () => {
+  const guardarResumen = async () => {
+    await guardarResumenGeneral(idSeguimientoGeneral, resumenGeneral);
     navigate("/citas");
   };
 
   if (cargando) return <p className="p-6">Cargando cita...</p>;
-
   if (citaFinalizada) {
     return (
-      <Layout>
-        <div className="p-6 text-center space-y-4 flex flex-col items-center">
-          <h2 className="text-xl font-semibold text-gray-700">
-            Esta cita ya fue finalizada.
-          </h2>
-          <p className="text-gray-500">
-            No puedes modificar una cita con estado <strong>usada</strong>.
-          </p>
-         <Button text="Volver" color="bg-gray-600" onClick={volver} />
-        </div>
-      </Layout>
+      <div className="p-6 text-center space-y-4 flex flex-col items-center">
+        <h2 className="text-xl font-semibold text-gray-700">
+          Esta cita ya fue finalizada.
+        </h2>
+        <Button text="Volver" color="bg-gray-600" onClick={() => navigate("/citas")} />
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <main className="p-6 space-y-6">
-        <h2 className="text-2xl font-bold">
-          Seguimiento de cita #{id} – {cita.estudiante?.nombres} {cita.estudiante?.apellidos}
-        </h2>
+    <main className="p-6 space-y-6">
+      <h2 className="text-2xl font-bold">
+        Seguimiento de cita #{id} – {cita.estudiante?.nombres} {cita.estudiante?.apellidos}
+      </h2>
 
-        {consultas.length === 0 ? (
-          <p className="italic">No hay consultas en estado 'en_cita' para este estudiante.</p>
-        ) : (
-          consultas.map((consulta) => (
-            <div key={consulta.id} className="bg-white p-4 rounded shadow space-y-2">
-              <p className="font-semibold">Motivo: {consulta.motivo}</p>
+      {consultas.map((consulta) => (
+        <div key={consulta.id} className="bg-white p-4 rounded shadow space-y-2">
+          <p className="font-semibold">Motivo: {consulta.motivo}</p>
 
-              <div className="space-y-2">
-                <h4 className="text-sm text-gray-600 font-medium">Observaciones anteriores:</h4>
-                {observaciones[consulta.id]?.length > 0 ? (
-                  <ul className="text-sm text-gray-800 space-y-1">
-                    {observaciones[consulta.id].map((obs, i) => (
-                      <li key={i} className="border-l-4 border-blue-500 pl-2">
-                        <p className="text-gray-500 text-xs mb-0.5">
-                          {new Date(obs.fecha).toLocaleString()}
-                        </p>
-                        <p>{obs.texto}</p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="italic text-sm text-gray-500">Sin observaciones aún.</p>
-                )}
-              </div>
+          <div>
+            <h4 className="text-sm font-medium text-gray-600">Observaciones anteriores:</h4>
+            <ul className="text-sm space-y-1">
+              {observaciones[consulta.id]?.map((obs, i) => (
+                <li key={i} className="border-l-4 border-blue-500 pl-2">
+                  <p className="text-xs text-gray-500">{new Date(obs.fecha).toLocaleString()}</p>
+                  <p>{obs.texto}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-              <div className="mt-4">
-                <label className="text-sm text-gray-600 font-medium block mb-1">
-                  Nueva observación:
-                </label>
-                <textarea
-                  rows={3}
-                  className="w-full border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                  placeholder="Escriba la observación de esta cita para esta consulta..."
-                  value={textoNuevo[consulta.id] || ""}
-                  onChange={(e) => manejarCambioTexto(consulta.id, e.target.value)}
-                />
-              </div>
+          {!mostrarCampoResumen && (
+            <>
+              <textarea
+                rows={3}
+                className="w-full border-b border-gray-400 focus:outline-none"
+                placeholder="Escriba nueva observación..."
+                value={textoNuevo[consulta.id] || ""}
+                onChange={(e) => manejarCambioTexto(consulta.id, e.target.value)}
+              />
 
               <ComboBox
                 opciones={["en_progreso", "completado"]}
@@ -240,15 +219,26 @@ export const CitaActiva = () => {
                 onChange={(valor) => cambiarEstado(consulta.id, valor)}
                 label="Estado de la consulta"
               />
-            </div>
-          ))
-        )}
+            </>
+          )}
+        </div>
+      ))}
 
+      {!mostrarCampoResumen && (
         <div className="flex gap-4 mt-6">
-          <Button text="Volver" color="bg-gray-600" onClick={volver} />
+          <Button text="Volver" color="bg-gray-600" onClick={() => navigate("/citas")} />
           <Button text="Finalizar cita" color="bg-blue-600" onClick={finalizarCita} />
         </div>
-      </main>
+      )}
+
+      {mostrarCampoResumen && (
+        <ResumenGeneral
+          resumen={resumenGeneral}
+          setResumen={setResumenGeneral}
+          onGenerar={generarResumen}
+          onGuardar={guardarResumen}
+        />
+      )}
 
       {notificacion && (
         <NotificacionFlotante
@@ -257,6 +247,6 @@ export const CitaActiva = () => {
           onClose={() => setNotificacion(null)}
         />
       )}
-    </Layout>
+    </main>
   );
 };

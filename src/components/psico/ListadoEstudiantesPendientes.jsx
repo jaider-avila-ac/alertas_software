@@ -80,7 +80,7 @@ export const ListadoEstudiantesPendientes = () => {
     setModalVisible(true);
   };
 
-  // ✅ Corrección: recibir y usar la fecha que viene desde el Modal
+ 
   const confirmarAgendamiento = async (fecha) => {
     if (!usuario?.id) throw new Error("ID del psicorientador no disponible");
     return await agendarCitaParaConsulta(consultaIdSeleccionada, usuario.id, fecha);
