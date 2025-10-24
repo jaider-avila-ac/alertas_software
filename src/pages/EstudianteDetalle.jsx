@@ -117,7 +117,7 @@ export const EstudianteDetalle = () => {
         <h2 className="text-2xl font-bold">
           Detalles de {estudiante.nombres} {estudiante.apellidos}
         </h2>
-        {usuario.rol === 0 && (
+        {(usuario.rol === 0 || usuario.rol === 2) && (
           <Button
             text="Agregar alerta"
             icon={Plus}

@@ -24,3 +24,5 @@ export const generarResumenIA = (seguimientoId) =>
 // Guardar o actualizar el resumen general manualmente
 export const guardarResumenGeneral = (seguimientoId, resumen) =>
   put(`${base}/${seguimientoId}/resumen-manual`, { resumen });
+
+

@@ -2,6 +2,8 @@ import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
+import { ToDoFlotante } from "../components/ToDoFlotante";
+
 
 export const Layout = () => {
   const [ancho, setAncho] = useState(window.innerWidth);
@@ -30,6 +32,9 @@ export const Layout = () => {
           }`}
         >
           <Outlet />
+
+          <ToDoFlotante />
+
         </main>
       </div>
     </div>
