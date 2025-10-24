@@ -1,8 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./layout/Layout";
 import { PageLogin } from "./pages/PageLogin";
-
-
 import { Dashboard } from "./pages/Dashboard";
 import { EstudiantePage } from "./pages/EstudiantePage";
 import { EstudianteDetalle } from "./pages/EstudianteDetalle";
@@ -25,53 +23,64 @@ const estaAutenticado = () => {
   return !!localStorage.getItem("usuario");
 };
 
+// Componente para proteger rutas y guardar la URL de destino
+const RutaProtegida = ({ children }) => {
+  if (!estaAutenticado()) {
+    // Guardar la URL actual para redirigir después del login
+    const currentPath = window.location.pathname + window.location.search;
+    localStorage.setItem("redirectAfterLogin", currentPath);
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <Router>
       <Routes>
-  
         <Route path="/login" element={<PageLogin />} />
+        
+        <Route
+          path="/"
+          element={
+            <RutaProtegida>
+              <Layout />
+            </RutaProtegida>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="estudiantes" element={<EstudiantePage />} />
+          <Route path="estudiantes/:id" element={<EstudianteDetalle />} />
 
+          <Route path="consultas" element={<PageAlertas />} />
+          <Route path="consultas/nueva" element={<AlertaNueva />} />
+          <Route path="consultas/nueva/:id" element={<AlertaNueva />} />
+          <Route path="editar-alerta/:id" element={<AlertaNueva />} />
 
-        {estaAutenticado() && (
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="estudiantes" element={<EstudiantePage />} />
-            <Route path="estudiantes/:id" element={<EstudianteDetalle />} />
+          <Route path="seguimientos" element={<EstudiantePage />} />
+          <Route path="seguimientos/:id" element={<SeguimientosPorConsulta />} />
 
-            <Route path="consultas" element={<PageAlertas />} />
-            <Route path="consultas/nueva" element={<AlertaNueva />} />
-            <Route path="consultas/nueva/:id" element={<AlertaNueva />} />
-            <Route path="editar-alerta/:id" element={<AlertaNueva />} />
+          <Route path="citas" element={<CitasPage />} />
+          <Route path="citas/activa/:id" element={<CitaActiva />} />
 
-            <Route path="seguimientos" element={<EstudiantePage />} />
-            <Route path="seguimientos/:id" element={<SeguimientosPorConsulta />} />
+          <Route path="alertas" element={<AlertasPage />} />
+          <Route path="mis-alertas" element={<AlertasEstudiante />} />
+          <Route path="perfil" element={<PerfilPage />} />
+          <Route path="estadisticas" element={<EstadisticasPage />} />
 
-            <Route path="citas" element={<CitasPage />} />
-            <Route path="citas/activa/:id" element={<CitaActiva />} />
+          <Route path="formulario-estudiante" element={<PageFormularioEstudiante />} />
+          <Route path="formulario-estudiante/:id" element={<PageFormularioEstudiante />} />
 
-            <Route path="alertas" element={<AlertasPage />} />
-            <Route path="mis-alertas" element={<AlertasEstudiante />} />
-            <Route path="perfil" element={<PerfilPage />} />
-            <Route path="estadisticas" element={<EstadisticasPage />} />
+          <Route path="docentes" element={<DocentePage />} />
+          <Route path="formulario-docente" element={<PageFormularioDocente />} />
+          <Route path="formulario-docente/:id" element={<PageFormularioDocente />} />
 
-            <Route path="formulario-estudiante" element={<PageFormularioEstudiante />} />
-            <Route path="formulario-estudiante/:id" element={<PageFormularioEstudiante />} />
+          <Route path="psicos" element={<PsicoPage />} />
+          <Route path="formulario-psico" element={<PageFormularioPsico />} />
+          <Route path="formulario-psico/:id" element={<PageFormularioPsico />} />
+        </Route>
 
-            <Route path="docentes" element={<DocentePage />} />
-            <Route path="formulario-docente" element={<PageFormularioDocente />} />
-            <Route path="formulario-docente/:id" element={<PageFormularioDocente />} />
-
-            <Route path="psicos" element={<PsicoPage />} />
-            <Route path="formulario-psico" element={<PageFormularioPsico />} />
-            <Route path="formulario-psico/:id" element={<PageFormularioPsico />} />
-          </Route>
-        )}
-
-        {/* si no esta aurenticado ir al login */}
-        {!estaAutenticado() && (
-          <Route path="*" element={<PageLogin />} />
-        )}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

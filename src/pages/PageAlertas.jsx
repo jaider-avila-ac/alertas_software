@@ -24,16 +24,13 @@ export const PageAlertas = () => {
   const estadoParam = searchParams.get("estado");
   const navigate = useNavigate();
 
-  // Aplicar filtro de estado SOLO al cargar desde la URL
   useEffect(() => {
     if (estadoParam) {
       setEstadoFiltro(estadoParam);
-      // Reemplazar la URL para que quede limpia
       navigate("/consultas", { replace: true });
     }
   }, [estadoParam, navigate]);
 
-  // Cargar alertas desde el backend
   useEffect(() => {
     const fetchAlertas = async () => {
       setCargando(true);
@@ -66,7 +63,6 @@ export const PageAlertas = () => {
     fetchAlertas();
   }, [location.pathname]);
 
-  // Filtrar alertas
   useEffect(() => {
     if (!alertas || alertas.length === 0) {
       setAlertasFiltradas([]);
@@ -123,7 +119,7 @@ export const PageAlertas = () => {
           />
         </div>
 
-        {usuario?.rol !== 2 && (
+        {usuario?.rol === 1 && (
           <div>
             <Button
               text="Crear alerta"

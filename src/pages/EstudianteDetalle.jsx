@@ -14,7 +14,7 @@ import { UserContext } from "../context/UserContext";
 import { Button } from "../components/Button";
 import { Table } from "../components/Table";
 import { DatoCampo } from "../components/DatoCampo";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 import { ResumenGeneral } from "../components/psico/ResumenGeneral";
 
 export const EstudianteDetalle = () => {
@@ -117,14 +117,22 @@ export const EstudianteDetalle = () => {
         <h2 className="text-2xl font-bold">
           Detalles de {estudiante.nombres} {estudiante.apellidos}
         </h2>
-        {(usuario.rol === 0 || usuario.rol === 2) && (
+        <div className="flex gap-2">
+          {(usuario.rol === 0 || usuario.rol === 2) && (
+            <Button
+              text="Agregar alerta"
+              icon={Plus}
+              color="bg-blue-600"
+              onClick={() => navigate(`/consultas/nueva/${id}`)}
+            />
+          )}
           <Button
-            text="Agregar alerta"
-            icon={Plus}
-            color="bg-blue-600"
-            onClick={() => navigate(`/consultas/nueva/${id}`)}
+            text="Volver"
+            icon={ArrowLeft}
+            color="bg-gray-500"
+            onClick={() => navigate("/estudiantes")}
           />
-        )}
+        </div>
       </div>
 
       <section>

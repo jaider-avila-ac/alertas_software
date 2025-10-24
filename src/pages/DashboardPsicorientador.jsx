@@ -1,11 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout } from "../layout/Layout";
 import { Button } from "../components/Button";
 import { Card } from "../components/Card";
 import { Esqueleto } from "../components/Esqueleto";
-import { CalendarClock, FileText, Users, Plus } from "lucide-react";
-
+import { CalendarClock, FileText, Users } from "lucide-react";
 import { UserContext } from "../context/UserContext";
 import { ListadoEstudiantesPendientes } from "../components/psico/ListadoEstudiantesPendientes";
 import { obtenerResumenDashboard } from "../services/dashboardService";
@@ -35,19 +33,8 @@ export const DashboardPsicorientador = () => {
   }, [usuario]);
 
   return (
-
     <main className="space-y-6 p-6">
-
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Panel Psicorientador</h2>
-        <Button
-          text="Crear alerta"
-          color="bg-pink-500"
-          icon={Plus}
-          onClick={() => navigate("/consultas/nueva")}
-        />
-      </div>
-      
+      <h2 className="text-2xl font-bold">Panel Psicorientador</h2>
 
       <div className="grid grid-cols-12 gap-4">
         {cargando ? (
@@ -93,6 +80,5 @@ export const DashboardPsicorientador = () => {
         <ListadoEstudiantesPendientes />
       </section>
     </main>
-
   );
 };

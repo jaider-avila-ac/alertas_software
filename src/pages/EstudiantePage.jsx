@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import { Buscador } from "../components/Buscador";
@@ -18,6 +18,7 @@ export const EstudiantePage = () => {
   const navigate = useNavigate();
 
   const [busqueda, setBusqueda] = useState("");
+  const [busquedaActiva, setBusquedaActiva] = useState("");
   const [pagina, setPagina] = useState(1);
 
   const [modalMasivo, setModalMasivo] = useState(false);
@@ -30,22 +31,81 @@ export const EstudiantePage = () => {
 
   const { estudiantes, fotos, cargando, recargar } = useEstudiantes({ soloConSeguimiento });
 
-  // ✅ Recargar cuando el usuario cambie o la ruta cambie
+  // Recargar solo cuando cambie la ruta
   useEffect(() => {
-    if (usuario) {
+    if (usuario?.id) {
       recargar();
     }
-  }, [usuario, location.pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, usuario?.id]);
 
-  const estudiantesFiltrados = estudiantes.filter((e) =>
-    `${e.nombres} ${e.apellidos} ${e.nroDoc}`.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  // ✅ Debounce para la búsqueda
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setBusquedaActiva(busqueda);
+      setPagina(1);
+    }, 300);
 
-  if (![0, 2, 3].includes(usuario?.rol)) {
+    return () => clearTimeout(timeout);
+  }, [busqueda]);
+
+  // ✅ Normalizar texto (sin acentos, minúsculas)
+  const normalizarTexto = (texto) => {
+    if (!texto) return "";
+    return String(texto)
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  };
+
+  // ✅ Filtrar estudiantes con useMemo
+  const estudiantesFiltrados = useMemo(() => {
+    try {
+      if (!Array.isArray(estudiantes)) return [];
+      
+      const textoBusqueda = normalizarTexto(busquedaActiva);
+      
+      if (!textoBusqueda) {
+        return estudiantes;
+      }
+
+      return estudiantes.filter((estudiante) => {
+        if (!estudiante) return false;
+        
+        const nombres = normalizarTexto(estudiante.nombres || "");
+        const apellidos = normalizarTexto(estudiante.apellidos || "");
+        const nombreCompleto = `${nombres} ${apellidos}`.trim();
+
+        return nombreCompleto.includes(textoBusqueda);
+      });
+    } catch (error) {
+      console.error("Error al filtrar estudiantes:", error);
+      return estudiantes || [];
+    }
+  }, [estudiantes, busquedaActiva]);
+
+  // ✅ Verificar si está buscando (el debounce aún no terminó)
+  const estaBuscando = busqueda !== busquedaActiva;
+
+  // Verificar permisos
+  if (!usuario || ![0, 2, 3].includes(usuario?.rol)) {
     return (
       <main className="flex-1 p-4">
         <h2 className="text-xl font-semibold">Acceso restringido</h2>
         <p>No tiene permisos para acceder a esta sección.</p>
+      </main>
+    );
+  }
+
+  // Mostrar indicador de carga inicial
+  if (cargando && (!estudiantes || estudiantes.length === 0)) {
+    return (
+      <main className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando estudiantes...</p>
+        </div>
       </main>
     );
   }
@@ -74,27 +134,42 @@ export const EstudiantePage = () => {
       <div className="flex items-center gap-4">
         <Buscador
           valor={busqueda}
-          onChange={(valor) => {
-            setBusqueda(valor);
-            setPagina(1);
-          }}
-          placeholder="Buscar por nombre o documento"
+          onChange={(valor) => setBusqueda(valor)}
+          placeholder="Buscar por nombre o apellido"
         />
-        <Button
-          text="Buscar"
-          color="bg-sky-500"
-          onClick={() => setPagina(1)}
-        />
+        {/* ✅ Solo mostrar cuando el debounce haya terminado */}
+        {busquedaActiva && !estaBuscando && (
+          <span className="text-sm text-gray-600 font-medium">
+            {estudiantesFiltrados.length} resultado{estudiantesFiltrados.length !== 1 ? "s" : ""}
+          </span>
+        )}
+        {/* ✅ Mostrar "Buscando..." mientras escribe */}
+        {estaBuscando && busqueda && (
+          <span className="text-sm text-gray-400 italic">
+            Buscando...
+          </span>
+        )}
       </div>
 
-      <TablaEstudiantes
-        estudiantes={estudiantesFiltrados}
-        fotos={fotos}
-        pagina={pagina}
-        porPagina={15}
-        setPagina={setPagina}
-        setModalIndividual={setModalIndividual}
-      />
+      {/* Mensaje cuando no hay resultados */}
+      {estudiantesFiltrados.length === 0 && !cargando ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-gray-600 text-lg">
+            {busquedaActiva.trim() 
+              ? `No se encontraron estudiantes con "${busquedaActiva}"`
+              : "No hay estudiantes registrados"}
+          </p>
+        </div>
+      ) : (
+        <TablaEstudiantes
+          estudiantes={estudiantesFiltrados}
+          fotos={fotos}
+          pagina={pagina}
+          porPagina={15}
+          setPagina={setPagina}
+          setModalIndividual={setModalIndividual}
+        />
+      )}
 
       <ModalesEstudiantes
         modalMasivo={modalMasivo}
