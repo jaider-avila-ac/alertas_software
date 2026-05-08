@@ -25,16 +25,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor para detectar expiración de token
+// Interceptor para detectar expiración de token (solo 401 = token inválido/expirado)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (
-      error.response &&
-      (error.response.status === 401 || error.response.status === 403)
-    ) {
+    if (error.response?.status === 401) {
       localStorage.removeItem("usuario");
-      window.location.href = "/login"; // Redirige al login si expira el token
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }

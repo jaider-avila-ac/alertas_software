@@ -1,47 +1,58 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 
-let client = null;
+const WS_URL      = `ws://${window.location.hostname}:8085/ws`;
+const MAX_RETRIES  = 3;   // intentos antes de dejar de reconectar
+const RETRY_DELAY  = 15_000; // 15 segundos entre reintentos
 
-export default function useWebSocket(handlers = {}) {
+/**
+ * Hook estable para WebSocket con STOMP.
+ * Si el backend no responde, lo intenta MAX_RETRIES veces y se detiene.
+ * @param {string[]} topics - Lista de topics a suscribir
+ * @param {function} onMessage - Callback(topic, data) cuando llega un mensaje
+ */
+export default function useWebSocket(topics = [], onMessage) {
+  const cbRef    = useRef(onMessage);
+  cbRef.current  = onMessage;
+
+  const topicKey = topics.join("|");
+
   useEffect(() => {
-    console.log("🔌 Inicializando WebSocket...");
+    if (!topicKey) return;
 
-    client = new Client({
-      brokerURL: "ws://localhost:8085/ws",
-      reconnectDelay: 5000,
+    let retries = 0;
+
+    const client = new Client({
+      brokerURL: WS_URL,
+      reconnectDelay: RETRY_DELAY,
       onConnect: () => {
-        console.log("✅ Conectado a WebSocket");
-
-        Object.entries(handlers).forEach(([topic, callback]) => {
-          console.log(`📥 Suscrito a ${topic}`);
-          client.subscribe(topic, (message) => {
+        retries = 0;
+        topics.forEach((topic) => {
+          client.subscribe(topic, (msg) => {
             try {
-              const data = JSON.parse(message.body);
-              console.log(`📨 Mensaje recibido en ${topic}:`, data);
-              callback(data);
+              cbRef.current(topic, JSON.parse(msg.body));
             } catch (e) {
-              console.error("❌ Error al procesar mensaje WebSocket:", e);
+              console.error("WebSocket parse error:", e);
             }
           });
         });
       },
-      onStompError: (frame) => {
-        console.error("❌ Error STOMP:", frame.headers["message"]);
-        console.error("Detalles:", frame.body);
+      onWebSocketError: () => {
+        retries++;
+        if (retries >= MAX_RETRIES) {
+          client.deactivate();
+        }
       },
-      onWebSocketError: (event) => {
-        console.error("❌ Error en conexión WebSocket:", event);
+      onStompError: () => {
+        retries++;
+        if (retries >= MAX_RETRIES) {
+          client.deactivate();
+        }
       },
     });
 
     client.activate();
-
-    return () => {
-      if (client && client.active) {
-        console.log("🔌 Desconectando WebSocket...");
-        client.deactivate();
-      }
-    };
-  }, [handlers]); // Si cambian los handlers, se reactiva
+    return () => { if (client.active) client.deactivate(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topicKey]);
 }

@@ -5,101 +5,101 @@ import {
 } from "../../services/estudianteService";
 import { obtenerEstudiantesConSeguimientos } from "../../services/seguimientoService";
 
+let _cacheTodos    = null;
+let _cacheSeguim   = null;
+let _cacheFotos    = {};
+
 export const useEstudiantes = ({ soloConSeguimiento }) => {
-  const [estudiantes, setEstudiantes] = useState([]);
-  const [fotos, setFotos] = useState({});
-  const [cargando, setCargando] = useState(true);
+  const cache = soloConSeguimiento ? _cacheSeguim : _cacheTodos;
+
+  const [estudiantes, setEstudiantes] = useState(cache ?? []);
+  const [fotos,       setFotos]       = useState(_cacheFotos);
+  const [cargando,    setCargando]    = useState(!cache);
   const [cargandoFotos, setCargandoFotos] = useState(false);
 
-  useEffect(() => {
-    if (soloConSeguimiento) {
-      cargarEstudiantesConSeguimiento();
-    } else {
-      cargarTodosEstudiantes();
-    }
-  }, [soloConSeguimiento]);
-
-  const cargarTodosEstudiantes = async () => {
-    try {
-      setCargando(true);
-      const res = await obtenerTodosEstudiantes();
-      setEstudiantes(res.data);
-      
-      // ✅ Mostrar estudiantes inmediatamente
-      setCargando(false);
-      
-      // ✅ Cargar fotos en segundo plano progresivamente
-      cargarFotosProgresivamente(res.data);
-    } catch (err) {
-      console.error("Error al cargar estudiantes:", err);
-      setCargando(false);
-    }
-  };
-
-  const cargarEstudiantesConSeguimiento = async () => {
-    try {
-      setCargando(true);
-      const res = await obtenerEstudiantesConSeguimientos();
-      setEstudiantes(res.data);
-      
-      // ✅ Mostrar estudiantes inmediatamente
-      setCargando(false);
-      
-      // ✅ Cargar fotos en segundo plano
-      cargarFotosProgresivamente(res.data);
-    } catch (err) {
-      console.error("Error al cargar estudiantes con seguimiento:", err);
-      setCargando(false);
-    }
-  };
-
-  // ✅ Cargar fotos una por una, actualizando inmediatamente
-  const cargarFotosProgresivamente = async (lista) => {
+  const cargarFotos = useCallback(async (lista) => {
     setCargandoFotos(true);
-    
-    // Filtrar solo estudiantes con imagen
-    const estudiantesConImagen = lista.filter(est => est.imagen !== null);
-    
-    // ✅ Cargar fotos en lotes de 5 para mejor rendimiento
+    const conImagen = lista.filter((e) => e.imagen !== null);
     const LOTE = 5;
-    for (let i = 0; i < estudiantesConImagen.length; i += LOTE) {
-      const lote = estudiantesConImagen.slice(i, i + LOTE);
-      
-      // Cargar lote en paralelo
+
+    for (let i = 0; i < conImagen.length; i += LOTE) {
+      const lote = conImagen.slice(i, i + LOTE);
       await Promise.allSettled(
         lote.map(async (est) => {
+          if (_cacheFotos[est.id]) return;
           try {
-            const resImg = await obtenerImagenEstudiante(est.id);
-            const url = URL.createObjectURL(resImg.data);
-            
-            // ✅ Actualizar inmediatamente cada foto
+            const res = await obtenerImagenEstudiante(est.id);
+            const url = URL.createObjectURL(res.data);
+            _cacheFotos = { ..._cacheFotos, [est.id]: url };
             setFotos((prev) => ({ ...prev, [est.id]: url }));
-          } catch (error) {
-            console.log(`Error al cargar foto del estudiante ${est.id}`);
+          } catch {
+            // foto no disponible, sin acción
           }
         })
       );
     }
-    
     setCargandoFotos(false);
-  };
+  }, []);
+
+  const cargar = useCallback(async () => {
+    try {
+      const res = soloConSeguimiento
+        ? await obtenerEstudiantesConSeguimientos()
+        : await obtenerTodosEstudiantes();
+
+      const datos = res.data;
+
+      if (soloConSeguimiento) _cacheSeguim = datos;
+      else                    _cacheTodos  = datos;
+
+      setEstudiantes(datos);
+      setCargando(false);
+      cargarFotos(datos);
+    } catch (err) {
+      console.error("Error al cargar estudiantes:", err);
+      setCargando(false);
+    }
+  }, [soloConSeguimiento, cargarFotos]);
+
+  useEffect(() => {
+    let active = true;
+    setCargando(!cache);
+
+    const run = async () => {
+      try {
+        const res = soloConSeguimiento
+          ? await obtenerEstudiantesConSeguimientos()
+          : await obtenerTodosEstudiantes();
+
+        if (!active) return;
+
+        const datos = res.data;
+        if (soloConSeguimiento) _cacheSeguim = datos;
+        else                    _cacheTodos  = datos;
+
+        setEstudiantes(datos);
+        setCargando(false);
+        cargarFotos(datos);
+      } catch (err) {
+        if (active) {
+          console.error("Error al cargar estudiantes:", err);
+          setCargando(false);
+        }
+      }
+    };
+
+    run();
+    return () => { active = false; };
+  }, [soloConSeguimiento, cargarFotos]);
 
   const recargar = useCallback(() => {
-    // ✅ Limpiar fotos anteriores para evitar duplicados
+    if (soloConSeguimiento) _cacheSeguim = null;
+    else                    _cacheTodos  = null;
+    _cacheFotos = {};
     setFotos({});
-    
-    if (soloConSeguimiento) {
-      cargarEstudiantesConSeguimiento();
-    } else {
-      cargarTodosEstudiantes();
-    }
-  }, [soloConSeguimiento]);
+    setCargando(true);
+    cargar();
+  }, [soloConSeguimiento, cargar]);
 
-  return {
-    estudiantes,
-    fotos,
-    cargando,
-    cargandoFotos, // ✅ Nuevo: indica si aún se están cargando fotos
-    recargar,
-  };
+  return { estudiantes, fotos, cargando, cargandoFotos, recargar };
 };

@@ -4,7 +4,7 @@ import { useContext } from "react";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
 import { ToDoFlotante } from "../ToDoFlotante";
-import { useInactivityTimer } from "../../hooks/useInactivityTimer";
+import { usePing } from "../../hooks/usePing";
 import { UserContext } from "../../context/UserContext";
 
 export default function AppLayout() {
@@ -18,7 +18,7 @@ export default function AppLayout() {
     navigate("/login", { replace: true });
   }, [navigate, setUsuario]);
 
-  useInactivityTimer(handleLogout);
+  usePing(handleLogout);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">

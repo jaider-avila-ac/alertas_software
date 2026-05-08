@@ -98,6 +98,7 @@ export const PageFormularioEstudiante = () => {
     const [guardandoEstudiante, setGuardandoEstudiante] = useState(false);
     const [guardandoFamiliar, setGuardandoFamiliar] = useState(false);
     const [eliminandoFamiliar, setEliminandoFamiliar] = useState(null);
+    const [errorEstudiante, setErrorEstudiante] = useState(null);
 
     useEffect(() => {
         if (editar) {
@@ -139,20 +140,37 @@ export const PageFormularioEstudiante = () => {
         cargarImagen(id);
     };
 
+    const sanitizar = (obj) =>
+        Object.fromEntries(
+            Object.entries(obj).map(([k, v]) => [k, v === "" ? null : v])
+        );
+
+    const validar = () => {
+        if (!formulario.nroDoc?.trim()) return "El número de documento es obligatorio";
+        if (!formulario.nombres?.trim()) return "El nombre es obligatorio";
+        if (!formulario.apellidos?.trim()) return "Los apellidos son obligatorios";
+        return null;
+    };
+
     const manejarGuardar = async () => {
         if (guardandoEstudiante) return;
+        const errorValidacion = validar();
+        if (errorValidacion) { setErrorEstudiante(errorValidacion); return; }
+        setErrorEstudiante(null);
 
         try {
             setGuardandoEstudiante(true);
+            const datos = sanitizar(formulario);
             if (editar) {
-                await actualizarEstudiante(id, formulario);
+                await actualizarEstudiante(id, datos);
                 navigate("/estudiantes");
             } else {
-                const res = await crearEstudiante(formulario);
+                const res = await crearEstudiante(datos);
                 navigate(`/formulario-estudiante/${res.data.id}`);
             }
         } catch (err) {
-            alert("Error al guardar: " + err.message);
+            const mensaje = err.response?.data || err.message;
+            setErrorEstudiante("Error al guardar: " + mensaje);
             console.error(err);
         } finally {
             setGuardandoEstudiante(false);
@@ -527,9 +545,20 @@ export const PageFormularioEstudiante = () => {
                     )}
                 </div>
 
+                {errorEstudiante && (
+                    <div className="mb-2">
+                        <Notificacion
+                            texto={errorEstudiante}
+                            color="bg-red-500"
+                            icono={AlertCircle}
+                            onClose={() => setErrorEstudiante(null)}
+                        />
+                    </div>
+                )}
+
                 <div className="flex gap-4 pb-6">
-                    <Button 
-                        text={guardandoEstudiante ? "Guardando..." : "Guardar Estudiante"}
+                    <Button
+                        text={guardandoEstudiante ? "Guardando..." : "Guardar"}
                         icon={Save}
                         color="bg-green-600" 
                         onClick={manejarGuardar}

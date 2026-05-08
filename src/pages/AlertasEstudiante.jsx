@@ -7,9 +7,9 @@ import { obtenerEstudiantePorId } from "../services/estudianteService";
 
 import DataTable from "../components/ui/DataTable";
 import { Button } from "../components/Button";
+import useWebSocket from "../services/useWebSocket";
 
 const COLUMNS = [
-  { key: "id",     label: "ID",     sortable: true },
   { key: "motivo", label: "Motivo", sortable: true },
   { key: "fecha",  label: "Fecha",  sortable: true },
   { key: "estado", label: "Estado", sortable: true },
@@ -23,6 +23,12 @@ export const AlertasEstudiante = () => {
   const [alertas,     setAlertas]     = useState([]);
   const [estudiante,  setEstudiante]  = useState(null);
   const [cargando,    setCargando]    = useState(true);
+  const [version,     setVersion]     = useState(0);
+
+  useWebSocket(
+    usuario?.id ? [`/topic/consultas/${usuario.id}`] : [],
+    () => setVersion((v) => v + 1)
+  );
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -48,7 +54,7 @@ export const AlertasEstudiante = () => {
     };
 
     cargarDatos();
-  }, [usuario.id]);
+  }, [usuario.id, version]);
 
   return (
     <main className="space-y-6">

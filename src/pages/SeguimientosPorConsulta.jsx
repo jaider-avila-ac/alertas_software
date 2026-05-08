@@ -1,5 +1,6 @@
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { obtenerSeguimientosPorConsulta } from "../services/seguimientoService";
 import { obtenerObservacionesPorSeguimiento } from "../services/observacionService";
 import DataTable from "../components/ui/DataTable";
@@ -15,6 +16,7 @@ export const SeguimientosPorConsulta = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const nombreEstudiante = searchParams.get("estudiante") || "Estudiante";
+  const navigate = useNavigate();
 
   const [filas,         setFilas]         = useState([]);
   const [observaciones, setObservaciones] = useState([]);
@@ -60,9 +62,17 @@ export const SeguimientosPorConsulta = () => {
 
   return (
     <main className="space-y-6">
-      <h2 className="text-2xl font-bold">
-        Seguimiento de alerta #{id} – {decodeURIComponent(nombreEstudiante)}
-      </h2>
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm transition-colors"
+        >
+          <ArrowLeft size={16} /> Volver
+        </button>
+        <h2 className="text-2xl font-bold">
+          Seguimiento de alerta #{id} – {decodeURIComponent(nombreEstudiante)}
+        </h2>
+      </div>
 
       {cargando ? (
         <Esqueleto className="h-32 w-full rounded" />

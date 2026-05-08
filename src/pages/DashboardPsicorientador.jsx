@@ -8,32 +8,37 @@ import { UserContext } from "../context/UserContext";
 import { ListadoEstudiantesPendientes } from "../components/psico/ListadoEstudiantesPendientes";
 import { obtenerResumenDashboard } from "../services/dashboardService";
 
+let _cacheResumen = null;
+
 export const DashboardPsicorientador = () => {
-  const [resumen, setResumen] = useState({
-    alertasPendientesPsico: 0,
-    alertasCompletadasPsico: 0,
-    citasAsignadasPsico: 0,
+  const [resumen,  setResumen]  = useState(_cacheResumen ?? {
+    alertasPendientesPsico:   0,
+    alertasCompletadasPsico:  0,
+    citasAsignadasPsico:      0,
   });
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState(!_cacheResumen);
+
   const { usuario } = useContext(UserContext);
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
 
   useEffect(() => {
-    const cargarResumen = async () => {
-      try {
-        const res = await obtenerResumenDashboard(usuario.rol, usuario.id);
+    if (!usuario?.id) return;
+    let active = true;
+
+    obtenerResumenDashboard(usuario.rol, usuario.id)
+      .then((res) => {
+        if (!active) return;
+        _cacheResumen = res.data;
         setResumen(res.data);
-      } catch (error) {
-        console.error("Error cargando resumen del psicorientador:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-    cargarResumen();
+      })
+      .catch((err) => console.error("Error cargando resumen del psicorientador:", err))
+      .finally(() => { if (active) setCargando(false); });
+
+    return () => { active = false; };
   }, [usuario]);
 
   return (
-    <main className="space-y-6 p-6">
+    <main className="space-y-6">
       <h2 className="text-2xl font-bold">Panel Psicorientador</h2>
 
       <div className="grid grid-cols-12 gap-4">

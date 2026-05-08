@@ -18,37 +18,50 @@ const COLUMNS = [
   { key: "correo",  label: "Correo"    },
 ];
 
+let _cache = null;
+
+const mapRow = (d) => ({
+  ...d,
+  nombre: `${d.nombres} ${d.apellidos}`,
+  correo: d.correo || "—",
+});
+
 export const DocentePage = () => {
-  const [docentes, setDocentes]           = useState([]);
-  const [cargando, setCargando]           = useState(true);
-  const [modalMasivo, setModalMasivo]     = useState(false);
+  const [docentes, setDocentes]               = useState(_cache ?? []);
+  const [cargando, setCargando]               = useState(!_cache);
+  const [modalMasivo, setModalMasivo]         = useState(false);
   const [modalIndividual, setModalIndividual] = useState({ visible: false, cedula: "" });
-  const [noti, setNoti]                   = useState({ visible: false, texto: "", color: "" });
+  const [noti, setNoti]                       = useState({ visible: false, texto: "", color: "" });
 
   const { usuario } = useContext(UserContext);
   const navigate    = useNavigate();
   const location    = useLocation();
 
   useEffect(() => {
-    if (usuario?.rol === 3) cargarDocentes();
+    if (usuario?.rol !== 3) return;
+    let active = true;
+
+    obtenerTodosDocentes()
+      .then((res) => {
+        if (!active) return;
+        const rows = res.data.map(mapRow);
+        _cache = rows;
+        setDocentes(rows);
+      })
+      .catch((err) => console.error("Error al cargar docentes:", err))
+      .finally(() => { if (active) setCargando(false); });
+
+    return () => { active = false; };
   }, [usuario, location]);
 
-  const cargarDocentes = async () => {
-    setCargando(true);
-    try {
-      const res = await obtenerTodosDocentes();
-      setDocentes(
-        res.data.map((d) => ({
-          ...d,
-          nombre: `${d.nombres} ${d.apellidos}`,
-          correo: d.correo || "—",
-        }))
-      );
-    } catch (error) {
-      console.error("Error al cargar docentes:", error);
-    } finally {
-      setCargando(false);
-    }
+  const refrescar = () => {
+    obtenerTodosDocentes()
+      .then((res) => {
+        const rows = res.data.map(mapRow);
+        _cache = rows;
+        setDocentes(rows);
+      })
+      .catch((err) => console.error(err));
   };
 
   if (usuario.rol !== 3) {
@@ -66,15 +79,17 @@ export const DocentePage = () => {
         <h2 className="text-2xl font-bold">Docentes</h2>
         <div className="flex gap-2">
           <Button
-            text="Agregar docente"
+            text="Agregar"
             icon={Plus}
             color="bg-pink-500"
             onClick={() => navigate("/formulario-docente")}
+            hideTextOnMobile
           />
           <Button
             text="Generar usuarios"
             color="bg-green-600"
             onClick={() => setModalMasivo(true)}
+            hideTextOnMobile
           />
         </div>
       </div>
@@ -117,7 +132,7 @@ export const DocentePage = () => {
               try {
                 await generarUsuariosDocentesMasivo();
                 setModalMasivo(false);
-                cargarDocentes();
+                refrescar();
                 setNoti({ visible: true, texto: "Usuarios generados correctamente", color: "green" });
               } catch (err) {
                 setNoti({ visible: true, texto: "Error al generar usuarios", color: "red" });
@@ -148,7 +163,7 @@ export const DocentePage = () => {
               try {
                 await generarUsuarioDocente(modalIndividual.cedula);
                 setModalIndividual({ visible: false, cedula: "" });
-                cargarDocentes();
+                refrescar();
                 setNoti({ visible: true, texto: "Usuario generado correctamente", color: "green" });
               } catch (err) {
                 setNoti({ visible: true, texto: "Error al generar usuario", color: "red" });

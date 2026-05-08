@@ -1,6 +1,12 @@
-import { CalendarDays, User, AlertCircle, Brain } from "lucide-react";
+import { CalendarDays, BookOpen, Brain, Play, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../Button";
+
+const ESTADO = {
+  pendiente:   { label: "Pendiente",   bg: "bg-amber-400"   },
+  usada:       { label: "Completada",  bg: "bg-emerald-500" },
+  cancelada:   { label: "Cancelada",   bg: "bg-red-500"     },
+  en_progreso: { label: "En progreso", bg: "bg-blue-500"    },
+};
 
 export const CitaCard = ({ cita, onCancelar, mostrarPsico = false, esAdmin = false }) => {
   const navigate = useNavigate();
@@ -10,47 +16,72 @@ export const CitaCard = ({ cita, onCancelar, mostrarPsico = false, esAdmin = fal
     fecha,
     estudiante: { nombres, apellidos, curso } = {},
     psicorientador,
-    consultas = [],
     estado,
   } = cita;
 
-  const nombreCompleto = `${nombres} ${apellidos}`;
+  const cfg            = ESTADO[estado] ?? { label: estado, bg: "bg-gray-400" };
+  const nombreCompleto = `${nombres ?? ""} ${apellidos ?? ""}`.trim();
   const fechaFormateada = new Date(fecha).toLocaleDateString("es-CO");
 
-  const iniciarCita = () => {
-    navigate(`/citas/activa/${id}`);
-  };
+  const puedeIniciar = estado === "pendiente" && (onCancelar || esAdmin);
 
   return (
-    <div className="bg-white rounded shadow p-4 space-y-2">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Cita #{id}</h3>
-        <span className="text-sm text-gray-600">{fechaFormateada}</span>
+    <div className="flex flex-col sm:flex-row bg-white mb-3 items-start sm:items-center p-2 rounded shadow-sm gap-3 max-w-full hover:shadow-md transition">
+
+      {/* Caja de color con ícono — igual que AlertaCard */}
+      <div className={`w-14 h-14 hidden lg:flex items-center justify-center flex-shrink-0 rounded ${cfg.bg}`}>
+        <CalendarDays size={22} className="text-white" />
       </div>
 
-      <div className="text-sm text-gray-700 space-y-1">
-        <p className="flex items-center gap-1">
-          <User size={14} /> <strong>Estudiante:</strong> {nombreCompleto}
-        </p>
-        <p className="flex items-center gap-1">
-          <AlertCircle size={14} /> <strong>Curso:</strong> {curso || "N/D"}
-        </p>
-       
-        <p className="text-xs text-gray-500">
-          <strong>Estado:</strong> {estado}
-        </p>
+      {/* Info central */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="hidden lg:flex bg-pink-500 w-24 h-6 items-center justify-center rounded text-white font-semibold text-sm shrink-0">
+            Cita #{id}
+          </div>
+          <p className="font-semibold text-sm truncate">{nombreCompleto}</p>
+        </div>
 
-        {mostrarPsico && psicorientador?.nombres && (
-          <p className="flex items-center gap-1 text-sm text-gray-600">
-            <Brain size={14} /> <strong>Psicorientador:</strong> {psicorientador.nombres}
-          </p>
-        )}
+        <div className="flex gap-3 flex-wrap text-xs items-center">
+          <span className="flex items-center gap-1 whitespace-nowrap text-gray-600">
+            <CalendarDays size={12} /> {fechaFormateada}
+          </span>
+          {curso && (
+            <span className="flex items-center gap-1 whitespace-nowrap text-gray-600">
+              <BookOpen size={12} /> {curso}
+            </span>
+          )}
+          {mostrarPsico && psicorientador?.nombres && (
+            <span className="flex items-center gap-1 whitespace-nowrap text-gray-600">
+              <Brain size={12} /> {psicorientador.nombres}
+            </span>
+          )}
+          <span className={`px-2 py-0.5 rounded text-white font-semibold ${cfg.bg}`}>
+            {cfg.label}
+          </span>
+        </div>
       </div>
 
-      {estado === "pendiente" && onCancelar && !esAdmin && (
-        <div className="flex gap-2 pt-2">
-          <Button text="Iniciar" color="bg-blue-600" onClick={iniciarCita} />
-          <Button text="Cancelar" color="bg-red-600" onClick={() => onCancelar(id)} />
+      {/* Acciones — a la derecha igual que AlertaCard */}
+      {puedeIniciar && (
+        <div
+          className="flex flex-row gap-2 shrink-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => navigate(`/citas/activa/${id}`)}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-pink-500 text-white text-xs font-semibold hover:bg-pink-600 transition-colors"
+          >
+            <Play size={12} /> Iniciar
+          </button>
+          {onCancelar && !esAdmin && (
+            <button
+              onClick={() => onCancelar(id)}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-50 transition-colors"
+            >
+              <X size={12} /> Cancelar
+            </button>
+          )}
         </div>
       )}
     </div>

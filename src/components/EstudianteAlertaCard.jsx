@@ -3,7 +3,7 @@ import { AlertTriangle, ChevronRight } from "lucide-react";
 import FotoPorDefecto from "../assets/fotos_estudiante/CARD_PERFIL.jpg";
 import { obtenerImagenEstudiante } from "../services/estudianteService";
 
-export const EstudianteAlertaCard = ({ grupo, onClick }) => {
+export const EstudianteAlertaCard = ({ grupo, onClick, actions }) => {
   const { estudianteId, nombreEstudiante, total, pendientes } = grupo;
   const [imagenUrl, setImagenUrl] = useState(FotoPorDefecto);
 
@@ -55,6 +55,13 @@ export const EstudianteAlertaCard = ({ grupo, onClick }) => {
           )}
         </div>
       </div>
+
+      {/* Acciones opcionales (ej: botón Agendar cita) */}
+      {actions && (
+        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          {actions}
+        </div>
+      )}
 
       {/* Indicador de navegación */}
       <div className="hidden lg:flex items-center text-gray-300 flex-shrink-0">

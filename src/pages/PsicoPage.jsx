@@ -18,37 +18,50 @@ const COLUMNS = [
   { key: "correo",  label: "Correo"    },
 ];
 
+let _cache = null;
+
+const mapRow = (p) => ({
+  ...p,
+  nombre: `${p.nombres} ${p.apellidos}`,
+  correo: p.correo || "—",
+});
+
 export const PsicoPage = () => {
-  const [psicos, setPsicos]               = useState([]);
-  const [cargando, setCargando]           = useState(true);
-  const [modalMasivo, setModalMasivo]     = useState(false);
+  const [psicos, setPsicos]                   = useState(_cache ?? []);
+  const [cargando, setCargando]               = useState(!_cache);
+  const [modalMasivo, setModalMasivo]         = useState(false);
   const [modalIndividual, setModalIndividual] = useState({ visible: false, cedula: "" });
-  const [noti, setNoti]                   = useState({ visible: false, texto: "", color: "" });
+  const [noti, setNoti]                       = useState({ visible: false, texto: "", color: "" });
 
   const { usuario } = useContext(UserContext);
   const navigate    = useNavigate();
   const location    = useLocation();
 
   useEffect(() => {
-    if (usuario?.rol === 3) cargarPsicos();
+    if (usuario?.rol !== 3) return;
+    let active = true;
+
+    obtenerTodosPsicos()
+      .then((res) => {
+        if (!active) return;
+        const rows = res.data.map(mapRow);
+        _cache = rows;
+        setPsicos(rows);
+      })
+      .catch((err) => console.error("Error al cargar psicorientadores:", err))
+      .finally(() => { if (active) setCargando(false); });
+
+    return () => { active = false; };
   }, [usuario, location]);
 
-  const cargarPsicos = async () => {
-    setCargando(true);
-    try {
-      const res = await obtenerTodosPsicos();
-      setPsicos(
-        res.data.map((p) => ({
-          ...p,
-          nombre: `${p.nombres} ${p.apellidos}`,
-          correo: p.correo || "—",
-        }))
-      );
-    } catch (error) {
-      console.error("Error al cargar psicorientadores:", error);
-    } finally {
-      setCargando(false);
-    }
+  const refrescar = () => {
+    obtenerTodosPsicos()
+      .then((res) => {
+        const rows = res.data.map(mapRow);
+        _cache = rows;
+        setPsicos(rows);
+      })
+      .catch((err) => console.error(err));
   };
 
   if (usuario.rol !== 3) {
@@ -66,15 +79,17 @@ export const PsicoPage = () => {
         <h2 className="text-2xl font-bold">Psicorientadores</h2>
         <div className="flex gap-2">
           <Button
-            text="Agregar psico"
+            text="Agregar"
             icon={Plus}
             color="bg-pink-500"
             onClick={() => navigate("/formulario-psico")}
+            hideTextOnMobile
           />
           <Button
             text="Generar usuarios"
             color="bg-green-600"
             onClick={() => setModalMasivo(true)}
+            hideTextOnMobile
           />
         </div>
       </div>
@@ -117,7 +132,7 @@ export const PsicoPage = () => {
               try {
                 await generarUsuariosPsicorientadoresMasivo();
                 setModalMasivo(false);
-                cargarPsicos();
+                refrescar();
                 setNoti({ visible: true, texto: "Usuarios generados correctamente", color: "green" });
               } catch (err) {
                 setNoti({ visible: true, texto: "Error al generar usuarios", color: "red" });
@@ -148,7 +163,7 @@ export const PsicoPage = () => {
               try {
                 await generarUsuarioPsicorientador(modalIndividual.cedula);
                 setModalIndividual({ visible: false, cedula: "" });
-                cargarPsicos();
+                refrescar();
                 setNoti({ visible: true, texto: "Usuario generado correctamente", color: "green" });
               } catch (err) {
                 setNoti({ visible: true, texto: "Error al generar usuario", color: "red" });

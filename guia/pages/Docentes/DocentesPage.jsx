@@ -6,7 +6,7 @@ import { listarDocentes, generarUsuario } from "../../services/docentes.service"
 
 const COLUMNS = [
   { key: "nombres",   label: "Nombre",    render: (_, r) => `${r.nombres} ${r.apellidos}` },
-  { key: "documento", label: "Documento" },
+  { key: "nroDoc", label: "Documento" },
   { key: "genero",    label: "Género",    render: v => ({ M:"Masculino", F:"Femenino", O:"Otro" }[v] ?? v), sortable: false },
   { key: "correo",    label: "Correo" },
   { key: "telefono",  label: "Teléfono",  sortable: false },
@@ -39,7 +39,7 @@ export default function DocentesPage() {
   const handleGenerarUsuario = async (row) => {
     setUsuarios(prev => ({ ...prev, [row.id]: "loading" }));
     try {
-      await generarUsuario(row.id);
+      await generarUsuario(row.nroDoc);
       setUsuarios(prev => ({ ...prev, [row.id]: "ok" }));
     } catch (err) {
       const status = err?.response?.status;
@@ -118,7 +118,7 @@ export default function DocentesPage() {
             loading={loading}
             empty="No hay docentes registrados."
             defaultSort={{ key: "nombres", dir: "asc" }}
-            searchKeys={["nombres", "apellidos", "documento", "correo"]}
+            searchKeys={["nombres", "apellidos", "nroDoc", "correo"]}
             pageSize={10}
           />
         </div>

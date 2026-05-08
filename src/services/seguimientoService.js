@@ -2,6 +2,11 @@ import { get, post, put } from "../api/api";
 
 const base = "/seguimientos";
 
+export const obtenerSeguimientoPorId = (id) => get(`${base}/${id}`);
+
+export const obtenerSeguimientosCitaPorCita = (citaId) =>
+  get(`/seguimientos-citas/cita/${citaId}`);
+
 // Obtener seguimiento por consulta
 export const obtenerSeguimientosPorConsulta = (consultaId) =>
   get(`${base}/consulta/${consultaId}`);

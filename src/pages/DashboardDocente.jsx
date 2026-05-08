@@ -38,9 +38,7 @@ export const DashboardDocente = () => {
         const res = await obtenerTodasConsultas();
         const datos = res.data || [];
 
-        const filtradas = datos.filter((c) => c.docenteId === docenteId);
-
-        const procesadas = filtradas.map((c) => {
+        const mapearConsulta = (c) => {
           const nivel = c.nivel?.toLowerCase();
           const visual = alertaVisual[nivel] || {};
           return {
@@ -54,9 +52,16 @@ export const DashboardDocente = () => {
             icono: visual.icono,
             color: visual.color,
           };
-        });
+        };
 
-        setAlertas(procesadas);
+        // Todas las alertas para el gráfico (todos los docentes)
+        setAlertas(datos.map(mapearConsulta));
+
+        // Solo las del docente actual para la lista de estudiantes
+        const procesadas = datos
+          .filter((c) => c.docenteId === docenteId)
+          .map(mapearConsulta);
+
         setAlertasDocente(procesadas);
 
         const mapa = {};

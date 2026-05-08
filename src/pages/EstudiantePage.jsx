@@ -47,15 +47,17 @@ export const EstudiantePage = () => {
         {usuario.rol === 3 && (
           <div className="flex gap-2">
             <Button
-              text="Agregar estudiante"
+              text="Agregar"
               icon={Plus}
               color="bg-pink-500"
               onClick={() => navigate("/formulario-estudiante")}
+              hideTextOnMobile
             />
             <Button
               text="Generar usuarios"
               color="bg-green-600"
               onClick={() => setModalMasivo(true)}
+              hideTextOnMobile
             />
           </div>
         )}

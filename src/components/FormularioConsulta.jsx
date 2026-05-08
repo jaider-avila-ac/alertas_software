@@ -177,8 +177,12 @@ export const FormularioConsulta = ({ idEstudiante, idAlerta }) => {
         navigate("/consultas");
       }, 1500);
     } catch (error) {
+      const msgBackend = error.response?.data;
+      const texto = typeof msgBackend === "string" && msgBackend
+        ? msgBackend
+        : `Error ${error.response?.status ?? ""}: ${error.message}`;
       setMensaje({
-        texto: "Error al guardar la alerta.",
+        texto,
         color: "bg-red-500",
         icono: AlertTriangle,
       });
