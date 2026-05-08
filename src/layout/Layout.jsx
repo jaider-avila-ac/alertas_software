@@ -1,19 +1,28 @@
 import { Sidebar } from "../components/Sidebar";
 import { Header } from "../components/Header";
-import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import { ToDoFlotante } from "../components/ToDoFlotante";
+import { useInactivityTimer } from "../hooks/useInactivityTimer";
 
 
 export const Layout = () => {
   const [ancho, setAncho] = useState(window.innerWidth);
   const esEscritorio = ancho >= 1024;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const manejarResize = () => setAncho(window.innerWidth);
     window.addEventListener("resize", manejarResize);
     return () => window.removeEventListener("resize", manejarResize);
   }, []);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("usuario");
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  useInactivityTimer(handleLogout);
 
   return (
     <div className="flex flex-col min-h-screen">
