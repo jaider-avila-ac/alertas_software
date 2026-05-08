@@ -5,7 +5,6 @@ import {
   crearDocente,
   actualizarDocente,
 } from "../services/docenteService";
-import { Layout } from "../layout/Layout";
 import { Button } from "../components/Button";
 
 const tiposDoc = ["TI", "CC"];

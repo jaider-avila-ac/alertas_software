@@ -51,7 +51,7 @@ export const DashboardPsicorientador = () => {
                 total={resumen.alertasPendientesPsico}
                 icon={FileText}
                 bgColor="bg-pink-500"
-                onClick={() => navigate("/consultas?estado=pendiente")}
+                onClick={() => navigate("/consultas")}
               />
             </div>
             <div className="col-span-4">
@@ -60,7 +60,7 @@ export const DashboardPsicorientador = () => {
                 total={resumen.alertasCompletadasPsico}
                 icon={Users}
                 bgColor="bg-sky-500"
-                onClick={() => navigate("/consultas?estado=completado")}
+                onClick={() => navigate("/consultas")}
               />
             </div>
             <div className="col-span-4">

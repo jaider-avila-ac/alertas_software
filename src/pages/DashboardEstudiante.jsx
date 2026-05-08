@@ -1,5 +1,4 @@
 import { useContext, useEffect, useState } from "react";
-import { Layout } from "../layout/Layout";
 import { Card } from "../components/Card";
 import { CalendarDays, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Esqueleto } from "../components/Esqueleto";

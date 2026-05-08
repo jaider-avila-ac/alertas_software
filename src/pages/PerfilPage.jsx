@@ -1,7 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
-import { Layout } from "../layout/Layout";
 import { Button } from "../components/Button";
 import { LogOut } from "lucide-react";
 import { obtenerPsicoPorId } from "../services/psicoService";

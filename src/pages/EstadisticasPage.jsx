@@ -1,5 +1,4 @@
 import { useEffect, useState, useContext, useRef } from "react";
-import { Layout } from "../layout/Layout";
 import { obtenerEstadisticas } from "../services/estadisticaService";
 import { GraficoResumen } from "../components/graficos/GraficoResumen";
 import { GraficoNiveles } from "../components/graficos/GraficoNiveles";

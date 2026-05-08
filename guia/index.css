@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* Habilita dark: utilities en Tailwind v4 cuando <html> tiene la clase "dark" */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --sidebar-w: 230px;
+  --sidebar-sm: 58px;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+}
+
+.app-main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left .2s;
+}
+
+.app-main--sm {
+  margin-left: var(--sidebar-sm);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: var(--sidebar-w);
+  overflow: hidden;
+  z-index: 200;
+  transition: width .2s, transform .2s;
+}
+
+.sidebar--sm {
+  width: var(--sidebar-sm);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  z-index: 199;
+}
+
+/* ── Responsive móvil ── */
+@media (max-width: 767px) {
+  .app-main,
+  .app-main--sm {
+    margin-left: 0 !important;
+  }
+
+  .sidebar {
+    width: var(--sidebar-w) !important;
+    transform: translateX(0);
+  }
+
+  .sidebar--sm {
+    transform: translateX(-100%);
+    width: var(--sidebar-w) !important;
+  }
+}
+
+/* ── Modo oscuro global ──────────────────────────────────────────────────────
+   Las reglas sin @layer tienen mayor precedencia que las utilidades de
+   Tailwind (que están en @layer utilities), así que sobreescriben sin !important.
+   Mapeo: clases Tailwind usadas en la app → colores oscuros equivalentes.      */
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Layout shell */
+.dark .app-shell          { background: #020617; }
+.dark .app-main           { background: #020617; }
+
+/* Fondos */
+.dark .bg-white           { background-color: #1e293b; }
+.dark .bg-gray-50         { background-color: #0f172a; }
+.dark .bg-gray-100        { background-color: #1e293b; }
+.dark .bg-slate-50        { background-color: #0f172a; }
+.dark .bg-slate-100       { background-color: #1e293b; }
+.dark .bg-slate-800       { background-color: #0f172a; }
+.dark .bg-slate-900       { background-color: #020617; }
+
+/* Texto */
+.dark .text-gray-900      { color: #f8fafc; }
+.dark .text-gray-800      { color: #f1f5f9; }
+.dark .text-gray-700      { color: #e2e8f0; }
+.dark .text-gray-600      { color: #cbd5e1; }
+.dark .text-gray-500      { color: #94a3b8; }
+.dark .text-gray-400      { color: #64748b; }
+.dark .text-slate-800     { color: #f1f5f9; }
+.dark .text-slate-900     { color: #f8fafc; }
+
+/* Bordes */
+.dark .border-gray-50     { border-color: #1e293b; }
+.dark .border-gray-100    { border-color: #1e293b; }
+.dark .border-gray-200    { border-color: #334155; }
+.dark .border-slate-100   { border-color: #1e293b; }
+.dark .border-slate-200   { border-color: #334155; }
+
+/* Sombras */
+.dark .shadow-sm          { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4); }
+.dark .shadow             { box-shadow: 0 1px 6px 0 rgb(0 0 0 / 0.5); }
+.dark .shadow-md          { box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.5); }
+.dark .shadow-xl          { box-shadow: 0 10px 30px 0 rgb(0 0 0 / 0.5); }
+.dark .shadow-2xl         { box-shadow: 0 20px 48px 0 rgb(0 0 0 / 0.6); }
+
+/* Inputs */
+.dark input, .dark textarea, .dark select {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #334155;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #475569; }
+
+/* Hover estados */
+.dark .hover\:bg-gray-100:hover  { background-color: #334155; }
+.dark .hover\:bg-gray-50:hover   { background-color: #1e293b; }

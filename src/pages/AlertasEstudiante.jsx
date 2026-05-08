@@ -5,17 +5,24 @@ import { UserContext } from "../context/UserContext";
 import { buscarConsultaPorEstudiante } from "../services/consultaService";
 import { obtenerEstudiantePorId } from "../services/estudianteService";
 
+import DataTable from "../components/ui/DataTable";
 import { Button } from "../components/Button";
-import { Table } from "../components/Table";
 
+const COLUMNS = [
+  { key: "id",     label: "ID",     sortable: true },
+  { key: "motivo", label: "Motivo", sortable: true },
+  { key: "fecha",  label: "Fecha",  sortable: true },
+  { key: "estado", label: "Estado", sortable: true },
+  { key: "nivel",  label: "Nivel",  sortable: true },
+];
 
 export const AlertasEstudiante = () => {
   const { usuario } = useContext(UserContext);
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
 
-  const [alertas, setAlertas] = useState([]);
-  const [estudiante, setEstudiante] = useState(null);
-  const [cargando, setCargando] = useState(true);
+  const [alertas,     setAlertas]     = useState([]);
+  const [estudiante,  setEstudiante]  = useState(null);
+  const [cargando,    setCargando]    = useState(true);
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -24,15 +31,15 @@ export const AlertasEstudiante = () => {
         setEstudiante(resEst.data);
 
         const resAlertas = await buscarConsultaPorEstudiante(usuario.id);
-        const alertasFormateadas = resAlertas.data.map((a) => ({
-          ID: a.id,
-          Motivo: a.motivo,
-          Fecha: new Date(a.fecha).toLocaleDateString(),
-          Estado: a.estado || "Sin estado",
-          Nivel: a.nivel || "Sin nivel",
-        }));
-
-        setAlertas(alertasFormateadas);
+        setAlertas(
+          (resAlertas.data || []).map((a) => ({
+            id:     a.id,
+            motivo: a.motivo,
+            fecha:  a.fecha ? new Date(a.fecha).toLocaleDateString() : "Sin fecha",
+            estado: a.estado || "Sin estado",
+            nivel:  a.nivel  || "Sin nivel",
+          }))
+        );
       } catch (error) {
         console.error("Error al cargar alertas del estudiante:", error);
       } finally {
@@ -43,46 +50,36 @@ export const AlertasEstudiante = () => {
     cargarDatos();
   }, [usuario.id]);
 
-  if (cargando) return <div className="p-4">Cargando...</div>;
-
   return (
-    <div>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold mb-4">
-          Mis Alertas (Consultas)
-        </h1>
+    <main className="space-y-6">
+      <h1 className="text-2xl font-bold">Mis Alertas</h1>
 
-        {estudiante && (
-          <div className="bg-white p-4 rounded shadow text-gray-700 space-y-1">
-            <p><strong>Estudiante:</strong> {estudiante.nombres} {estudiante.apellidos}</p>
-            <p><strong>Curso:</strong> {estudiante.curso}</p>
-            <p><strong>Documento:</strong> {estudiante.nroDoc}</p>
-          </div>
+      {estudiante && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-gray-700 space-y-1 text-sm">
+          <p><strong>Estudiante:</strong> {estudiante.nombres} {estudiante.apellidos}</p>
+          <p><strong>Curso:</strong> {estudiante.curso}</p>
+          <p><strong>Documento:</strong> {estudiante.nroDoc}</p>
+        </div>
+      )}
+
+      <DataTable
+        columns={COLUMNS}
+        rows={alertas}
+        loading={cargando}
+        searchKeys={["motivo", "estado"]}
+        actions={(row) => (
+          <Button
+            text="Ver seguimientos"
+            color="bg-green-600"
+            onClick={() =>
+              navigate(
+                `/seguimientos/${row.id}?estudiante=${estudiante?.nombres ?? ""} ${estudiante?.apellidos ?? ""}`
+              )
+            }
+          />
         )}
-
-        <section>
-          <h2 className="text-xl font-semibold mb-2">Listado de Alertas</h2>
-          {alertas.length > 0 ? (
-            <Table
-              columns={["ID", "Motivo", "Fecha", "Estado", "Nivel", "Ver Seguimientos"]}
-              data={alertas.map((a) => ({
-                ...a,
-                "Ver Seguimientos": (
-                  <Button
-                    text="Ver"
-                    color="bg-green-600"
-                    onClick={() =>
-                      navigate(`/seguimientos/${a.ID}?estudiante=${estudiante.nombres} ${estudiante.apellidos}`)
-                    }
-                  />
-                ),
-              }))}
-            />
-          ) : (
-            <p className="italic text-gray-600">No presenta alertas.</p>
-          )}
-        </section>
-      </div>
-    </div>
+        empty="No presenta alertas."
+      />
+    </main>
   );
 };

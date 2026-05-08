@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Layout } from "./layout/Layout";
+import AppLayout from "./components/layout/AppLayout";
 import { PageLogin } from "./pages/PageLogin";
 import { Dashboard } from "./pages/Dashboard";
 import { EstudiantePage } from "./pages/EstudiantePage";
 import { EstudianteDetalle } from "./pages/EstudianteDetalle";
+import { EstudianteAlertasPage } from "./pages/alertas/EstudianteAlertasPage";
 import { PageAlertas } from "./pages/PageAlertas";
 import { AlertaNueva } from "./pages/AlertaNueva";
 import { SeguimientosPorConsulta } from "./pages/SeguimientosPorConsulta";
@@ -18,15 +19,10 @@ import { DocentePage } from "./pages/DocentePage";
 import { PageFormularioDocente } from "./pages/PageFormularioDocente";
 import { PsicoPage } from "./pages/PsicoPage";
 import { PageFormularioPsico } from "./pages/PageFormularioPsico";
+import { estaAutenticado } from "./utils/auth";
 
-const estaAutenticado = () => {
-  return !!localStorage.getItem("usuario");
-};
-
-// Componente para proteger rutas y guardar la URL de destino
 const RutaProtegida = ({ children }) => {
   if (!estaAutenticado()) {
-    // Guardar la URL actual para redirigir después del login
     const currentPath = window.location.pathname + window.location.search;
     localStorage.setItem("redirectAfterLogin", currentPath);
     return <Navigate to="/login" replace />;
@@ -39,12 +35,12 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<PageLogin />} />
-        
+
         <Route
           path="/"
           element={
             <RutaProtegida>
-              <Layout />
+              <AppLayout />
             </RutaProtegida>
           }
         >
@@ -52,7 +48,9 @@ function App() {
           <Route path="estudiantes" element={<EstudiantePage />} />
           <Route path="estudiantes/:id" element={<EstudianteDetalle />} />
 
-          <Route path="consultas" element={<PageAlertas />} />
+          {/* Consultas: primero agrupa por estudiante, luego muestra las de uno */}
+          <Route path="consultas" element={<EstudianteAlertasPage />} />
+          <Route path="consultas/estudiante/:estudianteId" element={<PageAlertas />} />
           <Route path="consultas/nueva" element={<AlertaNueva />} />
           <Route path="consultas/nueva/:id" element={<AlertaNueva />} />
           <Route path="editar-alerta/:id" element={<AlertaNueva />} />

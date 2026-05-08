@@ -11,22 +11,45 @@ import {
 } from "../services/seguimientoService";
 
 import { UserContext } from "../context/UserContext";
+import DataTable from "../components/ui/DataTable";
 import { Button } from "../components/Button";
-import { Table } from "../components/Table";
 import { DatoCampo } from "../components/DatoCampo";
 import { Plus, ArrowLeft } from "lucide-react";
 import { ResumenGeneral } from "../components/psico/ResumenGeneral";
+
+const COLS_ANTECEDENTES = [
+  { key: "categoria", label: "Categoría" },
+  { key: "detalle",   label: "Detalle"   },
+  { key: "fecha",     label: "Fecha"     },
+];
+
+const COLS_FAMILIARES = [
+  { key: "nombre",     label: "Nombre"      },
+  { key: "parentesco", label: "Parentesco"  },
+  { key: "fechaNac",   label: "Fecha Nac."  },
+  { key: "escolaridad",label: "Escolaridad" },
+  { key: "telefono",   label: "Teléfono"    },
+  { key: "horario",    label: "Horario"     },
+];
+
+const COLS_ALERTAS = [
+  { key: "id",     label: "ID",     sortable: true },
+  { key: "motivo", label: "Motivo", sortable: true },
+  { key: "fecha",  label: "Fecha",  sortable: true },
+  { key: "estado", label: "Estado", sortable: true },
+  { key: "nivel",  label: "Nivel",  sortable: true },
+];
 
 export const EstudianteDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { usuario } = useContext(UserContext);
 
-  const [estudiante, setEstudiante] = useState(null);
-  const [antecedentes, setAntecedentes] = useState([]);
-  const [familiares, setFamiliares] = useState([]);
-  const [alertas, setAlertas] = useState([]);
-  const [resumenGeneral, setResumenGeneral] = useState("");
+  const [estudiante,           setEstudiante]           = useState(null);
+  const [antecedentes,         setAntecedentes]         = useState([]);
+  const [familiares,           setFamiliares]           = useState([]);
+  const [alertas,              setAlertas]              = useState([]);
+  const [resumenGeneral,       setResumenGeneral]       = useState("");
   const [idSeguimientoGeneral, setIdSeguimientoGeneral] = useState(null);
 
   useEffect(() => {
@@ -42,29 +65,43 @@ export const EstudianteDetalle = () => {
 
       try {
         const resAnt = await obtenerAntecedentesPorEstudiante(id);
-        setAntecedentes(resAnt.data || []);
-      } catch {
-        setAntecedentes([]);
-      }
+        setAntecedentes(
+          (resAnt.data || []).map((a) => ({
+            id:        a.id,
+            categoria: a.categoria?.nombre || "N/A",
+            detalle:   a.detalle,
+            fecha:     new Date(a.fechaRegistro).toLocaleDateString(),
+          }))
+        );
+      } catch { setAntecedentes([]); }
 
       try {
         const resFam = await obtenerFamiliaresPorEstudiante(id);
-        setFamiliares(resFam.data || []);
-      } catch {
-        setFamiliares([]);
-      }
+        setFamiliares(
+          (resFam.data || []).map((f) => ({
+            id:          f.id,
+            nombre:      `${f.nombres} ${f.apellidos}`,
+            parentesco:  f.parentesco,
+            fechaNac:    f.fechaNacimiento,
+            escolaridad: f.escolaridad,
+            telefono:    f.telefono,
+            horario:     f.horario,
+          }))
+        );
+      } catch { setFamiliares([]); }
 
       try {
         const resAlertas = await buscarConsultaPorEstudiante(id);
         const consultas = resAlertas.data || [];
-        const datos = consultas.map((a) => ({
-          ID: a.id,
-          Motivo: a.motivo,
-          Fecha: new Date(a.fecha).toLocaleDateString(),
-          Estado: a.estado,
-          Nivel: a.alerta,
-        }));
-        setAlertas(datos);
+        setAlertas(
+          consultas.map((a) => ({
+            id:     a.id,
+            motivo: a.motivo,
+            fecha:  new Date(a.fecha).toLocaleDateString(),
+            estado: a.estado,
+            nivel:  a.alerta,
+          }))
+        );
 
         for (const alerta of consultas) {
           try {
@@ -74,13 +111,9 @@ export const EstudianteDetalle = () => {
               setResumenGeneral(resSeg.data.resumenGeneral || "");
               break;
             }
-          } catch {
-            // continuar con la siguiente
-          }
+          } catch { /* continuar con la siguiente */ }
         }
-      } catch {
-        setAlertas([]);
-      }
+      } catch { setAlertas([]); }
     };
 
     fetchDatos();
@@ -91,9 +124,7 @@ export const EstudianteDetalle = () => {
     try {
       const res = await generarResumenIA(idSeguimientoGeneral);
       return res.data;
-    } catch {
-      return "ERROR";
-    }
+    } catch { return "ERROR"; }
   };
 
   const guardarResumen = async () => {
@@ -112,8 +143,8 @@ export const EstudianteDetalle = () => {
   if (!estudiante) return <div className="p-4">Cargando...</div>;
 
   return (
-    <main className="flex-1 overflow-y-auto space-y-6">
-      <div className="flex justify-between items-center">
+    <main className="space-y-6">
+      <div className="flex justify-between items-center flex-wrap gap-2">
         <h2 className="text-2xl font-bold">
           Detalles de {estudiante.nombres} {estudiante.apellidos}
         </h2>
@@ -122,7 +153,7 @@ export const EstudianteDetalle = () => {
             <Button
               text="Agregar alerta"
               icon={Plus}
-              color="bg-blue-600"
+              color="bg-pink-500"
               onClick={() => navigate(`/consultas/nueva/${id}`)}
             />
           )}
@@ -137,30 +168,23 @@ export const EstudianteDetalle = () => {
 
       <section>
         <h3 className="text-xl font-semibold mb-2">Información del estudiante</h3>
-        <div className="grid grid-cols-3 gap-4 bg-white p-4 rounded shadow">
-          <DatoCampo label="Tipo Doc" value={estudiante.tipoDoc} />
-          <DatoCampo label="Nro Doc" value={estudiante.nroDoc} />
-          <DatoCampo label="Fecha Nac" value={estudiante.fechaNac} />
-          <DatoCampo label="Género" value={estudiante.genero} />
-          <DatoCampo label="Teléfono" value={estudiante.tel || ""} />
-          <DatoCampo label="Curso" value={estudiante.curso} />
-          <DatoCampo label="Dirección" value={estudiante.direccion} />
-          <DatoCampo label="Barrio" value={estudiante.barrio} />
-          <DatoCampo label="Acudiente" value={estudiante.acudiente} />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <DatoCampo label="Tipo Doc"  value={estudiante.tipoDoc}    />
+          <DatoCampo label="Nro Doc"   value={estudiante.nroDoc}     />
+          <DatoCampo label="Fecha Nac" value={estudiante.fechaNac}   />
+          <DatoCampo label="Género"    value={estudiante.genero}     />
+          <DatoCampo label="Teléfono"  value={estudiante.tel || ""}  />
+          <DatoCampo label="Curso"     value={estudiante.curso}      />
+          <DatoCampo label="Dirección" value={estudiante.direccion}  />
+          <DatoCampo label="Barrio"    value={estudiante.barrio}     />
+          <DatoCampo label="Acudiente" value={estudiante.acudiente}  />
         </div>
       </section>
 
       <section>
         <h3 className="text-xl font-semibold mb-2">Antecedentes</h3>
         {antecedentes.length > 0 ? (
-          <Table
-            columns={["Categoría", "Detalle", "Fecha"]}
-            data={antecedentes.map((a) => ({
-              Categoría: a.categoria?.nombre || "N/A",
-              Detalle: a.detalle,
-              Fecha: new Date(a.fechaRegistro).toLocaleDateString(),
-            }))}
-          />
+          <DataTable columns={COLS_ANTECEDENTES} rows={antecedentes} empty="Sin antecedentes." />
         ) : (
           <p className="italic text-gray-600">Sin antecedentes registrados.</p>
         )}
@@ -169,17 +193,7 @@ export const EstudianteDetalle = () => {
       <section>
         <h3 className="text-xl font-semibold mb-2">Familiares</h3>
         {familiares.length > 0 ? (
-          <Table
-            columns={["Nombre", "Parentesco", "Fecha Nac.", "Escolaridad", "Teléfono", "Horario"]}
-            data={familiares.map((f) => ({
-              Nombre: `${f.nombres} ${f.apellidos}`,
-              Parentesco: f.parentesco,
-              "Fecha Nac.": f.fechaNacimiento,
-              Escolaridad: f.escolaridad,
-              Teléfono: f.telefono,
-              Horario: f.horario,
-            }))}
-          />
+          <DataTable columns={COLS_FAMILIARES} rows={familiares} empty="Sin familiares." />
         ) : (
           <p className="italic text-gray-600">Sin familiares registrados.</p>
         )}
@@ -188,20 +202,22 @@ export const EstudianteDetalle = () => {
       <section>
         <h3 className="text-xl font-semibold mb-2">Alertas</h3>
         {alertas.length > 0 ? (
-          <Table
-            columns={["ID", "Motivo", "Fecha", "Estado", "Nivel", "Ver Seguimientos"]}
-            data={alertas.map((a) => ({
-              ...a,
-              "Ver Seguimientos": (
-                <Button
-                  text="Ver"
-                  color="bg-green-600"
-                  onClick={() =>
-                    navigate(`/seguimientos/${a.ID}?estudiante=${estudiante.nombres} ${estudiante.apellidos}`)
-                  }
-                />
-              ),
-            }))}
+          <DataTable
+            columns={COLS_ALERTAS}
+            rows={alertas}
+            searchKeys={["motivo", "estado"]}
+            actions={(row) => (
+              <Button
+                text="Ver"
+                color="bg-green-600"
+                onClick={() =>
+                  navigate(
+                    `/seguimientos/${row.id}?estudiante=${estudiante.nombres} ${estudiante.apellidos}`
+                  )
+                }
+              />
+            )}
+            empty="No presenta alertas."
           />
         ) : (
           <p className="italic text-gray-600">No presenta alertas.</p>

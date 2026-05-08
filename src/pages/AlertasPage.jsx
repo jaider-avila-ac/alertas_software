@@ -2,110 +2,80 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { obtenerTodasConsultas } from "../services/consultaService";
 
-import { Table } from "../components/Table";
+import DataTable from "../components/ui/DataTable";
 import { Button } from "../components/Button";
-import { BarraFiltros } from "../components/BarraFiltros";
+import { ComboBox } from "../components/ComboBox";
+
+const COLUMNS = [
+  { key: "id",     label: "ID",     sortable: true  },
+  { key: "motivo", label: "Motivo", sortable: true  },
+  { key: "fecha",  label: "Fecha",  sortable: true  },
+  { key: "estado", label: "Estado", sortable: true  },
+  { key: "nivel",  label: "Nivel",  sortable: true  },
+];
+
+const ESTADOS = ["pendiente", "en_progreso", "en_cita", "completado"];
 
 export const AlertasPage = () => {
-  const [alertas, setAlertas] = useState([]);
+  const [alertas, setAlertas]           = useState([]);
+  const [cargando, setCargando]         = useState(true);
   const [estadoFiltro, setEstadoFiltro] = useState("pendiente");
-  const [busqueda, setBusqueda] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const cargarAlertas = async () => {
+      setCargando(true);
       try {
         const res = await obtenerTodasConsultas();
-        setAlertas(res.data || []);
+        setAlertas(
+          (res.data || []).map((a) => ({
+            ...a,
+            fecha: a.fecha ? new Date(a.fecha).toLocaleDateString() : "Sin fecha",
+          }))
+        );
       } catch (error) {
         console.error("Error cargando alertas:", error);
+      } finally {
+        setCargando(false);
       }
     };
     cargarAlertas();
   }, []);
 
-  const estados = ["pendiente", "en progreso", "completado"];
-
-  const alertasFiltradas = alertas.filter(
-    (a) =>
-      a.estado?.toLowerCase() === estadoFiltro.toLowerCase() &&
-      (a.motivo?.toLowerCase().includes(busqueda.toLowerCase()) ||
-        a.nivel?.toLowerCase().includes(busqueda.toLowerCase()))
-  );
-
-  const alertasCompletadas = alertas.filter((a) =>
-    a.estado?.toLowerCase() === "completado"
-  );
+  const alertasFiltradas = estadoFiltro === "todos"
+    ? alertas
+    : alertas.filter((a) => a.estado?.toLowerCase() === estadoFiltro.toLowerCase());
 
   return (
-    <div>
-      <main className="space-y-6">
-        <h2 className="text-2xl font-bold">Gestión de Alertas</h2>
+    <main className="space-y-6">
+      <h2 className="text-2xl font-bold">Gestión de Alertas</h2>
 
-        <BarraFiltros
-          valorBusqueda={busqueda}
-          onBuscar={setBusqueda}
-          mostrarFiltroEstado
-          estados={estados}
-          onFiltrarEstado={setEstadoFiltro}
+      <div className="flex items-center gap-3 flex-wrap">
+        <ComboBox
+          opciones={["todos", ...ESTADOS]}
+          valor={estadoFiltro}
+          onChange={setEstadoFiltro}
         />
+      </div>
 
-        <section>
-          <h3 className="text-xl font-semibold mb-2 capitalize">
-            Alertas {estadoFiltro}
-          </h3>
-          {alertasFiltradas.length > 0 ? (
-            <Table
-              columns={["ID", "Motivo", "Fecha", "Estado", "Nivel", "Ver Seguimientos"]}
-              data={alertasFiltradas.map((a) => ({
-                ID: a.id,
-                Motivo: a.motivo,
-                Fecha: new Date(a.fecha).toLocaleDateString(),
-                Estado: a.estado,
-                Nivel: a.nivel,
-                "Ver Seguimientos": (
-                  <Button
-                    text="Ver"
-                    color="bg-green-600"
-                    onClick={() =>
-                      navigate(`/seguimientos/${a.id}?estudiante=${a.estudiante?.nombres} ${a.estudiante?.apellidos}`)
-                    }
-                  />
-                ),
-              }))}
-            />
-          ) : (
-            <p className="italic text-gray-600">No hay alertas en este estado.</p>
-          )}
-        </section>
-
-        <section>
-          <h3 className="text-xl font-semibold mt-6 mb-2">Alertas completadas</h3>
-          {alertasCompletadas.length > 0 ? (
-            <Table
-              columns={["ID", "Motivo", "Fecha", "Estado", "Nivel", "Ver Seguimientos"]}
-              data={alertasCompletadas.map((a) => ({
-                ID: a.id,
-                Motivo: a.motivo,
-                Fecha: new Date(a.fecha).toLocaleDateString(),
-                Estado: a.estado,
-                Nivel: a.nivel,
-                "Ver Seguimientos": (
-                  <Button
-                    text="Ver"
-                    color="bg-green-600"
-                    onClick={() =>
-                      navigate(`/seguimientos/${a.id}?estudiante=${a.estudiante?.nombres} ${a.estudiante?.apellidos}`)
-                    }
-                  />
-                ),
-              }))}
-            />
-          ) : (
-            <p className="italic text-gray-600">No hay alertas completadas.</p>
-          )}
-        </section>
-      </main>
-    </div>
+      <DataTable
+        columns={COLUMNS}
+        rows={alertasFiltradas}
+        loading={cargando}
+        searchKeys={["motivo", "nivel"]}
+        actions={(row) => (
+          <Button
+            text="Ver"
+            color="bg-green-600"
+            onClick={() =>
+              navigate(
+                `/seguimientos/${row.id}?estudiante=${row.estudiante?.nombres ?? ""} ${row.estudiante?.apellidos ?? ""}`
+              )
+            }
+          />
+        )}
+        empty="No hay alertas en este estado."
+      />
+    </main>
   );
 };

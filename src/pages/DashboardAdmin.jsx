@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
-import { Layout } from "../layout/Layout";
 import { Card } from "../components/Card";
 import { Users, UserPlus, BarChart4 } from "lucide-react";
 

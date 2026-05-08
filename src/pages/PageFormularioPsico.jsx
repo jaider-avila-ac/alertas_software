@@ -5,7 +5,6 @@ import {
   crearPsico,
   actualizarPsico,
 } from "../services/psicoService";
-import { Layout } from "../layout/Layout";
 import { Button } from "../components/Button";
 
 const tiposDoc = ["TI", "CC"];
